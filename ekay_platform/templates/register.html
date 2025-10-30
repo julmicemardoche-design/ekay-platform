@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription - E-KAY{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4">Créer un compte</h2>
+                
+                <form method="POST" action="{{ url_for('register') }}" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="username" class="form-label">Nom d'utilisateur *</label>
+                            <input type="text" class="form-control form-control-lg" id="username" name="username" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Adresse email *</label>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Téléphone *</label>
+                            <input type="tel" class="form-control form-control-lg" id="phone" name="phone" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Mot de passe *</label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label">Confirmer le mot de passe *</label>
+                            <input type="password" class="form-control form-control-lg" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_landlord" name="is_landlord">
+                                <label class="form-check-label" for="is_landlord">
+                                    Je suis propriétaire et je souhaite publier des annonces
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                S'inscrire
+                            </button>
+                        </div>
+                        
+                        <div class="col-12 text-center mt-3">
+                            <p class="mb-0">Déjà inscrit ? 
+                                <a href="{{ url_for('login') }}" class="text-primary">Connectez-vous ici</a>
+                            </p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted small">En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

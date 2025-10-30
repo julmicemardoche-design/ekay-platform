@@ -1,0 +1,93 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Accueil - E-KAM{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1 class="mb-4">Bienvenue sur E-KAM</h1>
+        <p class="lead">Trouvez la propriété de vos rêves à Caracol, Haïti.</p>
+        
+        <div class="row mt-5">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Propriétés disponibles</h5>
+                        <p class="card-text">Parcourez notre sélection de propriétés à louer ou à acheter.</p>
+                        <a href="{{ url_for('properties') }}" class="btn btn-primary">Voir les propriétés</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Devenir propriétaire</h5>
+                        <p class="card-text">Proposez votre bien à la location ou à la vente.</p>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('new_property') }}" class="btn btn-success">Ajouter un bien</a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Se connecter</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Information sur le Village EKAM</h5>
+            </div>
+            <div class="card-body">
+                <p>Découvrez le Village EKAM, un lieu de vie exceptionnel à Caracol, Haïti.</p>
+                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#villageMapModal">
+                    <i class="fas fa-map-marked-alt me-2"></i>Voir sur la carte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour la carte du village -->
+<div class="modal fade" id="villageMapModal" tabindex="-1" aria-labelledby="villageMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="villageMapModalLabel">Localisation du Village EKAM</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <div id="villageMap" style="height: 400px; width: 100%;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialisation de la carte (sera chargée uniquement si le modal est ouvert)
+document.getElementById('villageMapModal').addEventListener('shown.bs.modal', function () {
+    // Coordonnées du Village EKAM (Caracol, Haïti)
+    const villageLatLng = [19.6917, -71.8250];
+    
+    // Création de la carte
+    const map = L.map('villageMap').setView(villageLatLng, 15);
+    
+    // Ajout de la couche de tuiles OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Ajout d'un marqueur pour le Village EKAM
+    L.marker(villageLatLng)
+        .addTo(map)
+        .bindPopup('<b>Village EKAM</b><br>Caracol, Haïti')
+        .openPopup();
+});
+</script>
+{% endblock %}

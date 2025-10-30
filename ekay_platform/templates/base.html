@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-KAY - Location au village EKAM{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0d6efd">
+    
+    <!-- Icons and PWA meta tags -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16.png') }}">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tF/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <!-- PWA Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="E-KAY">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/mstile-150x150.png') }}">
+    <meta name="msapplication-TileColor" content="#0d6efd">
+    <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
+    
+    <!-- iOS specific -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E-KAM">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    
+    <!-- Windows 8/10/11 -->
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <meta name="msapplication-TileColor" content="#0d6efd">
+    <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Indicateur de chargement global -->
+    <div id="loading-overlay" class="position-fixed w-100 h-100 bg-white d-flex justify-content-center align-items-center" style="z-index: 9999; display: none !important;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-3">Chargement en cours...</p>
+        </div>
+    </div>
+
+    <!-- Messages flash -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header bg-{{ category }} text-white">
+                            <strong class="me-auto">
+                                {% if category == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>Succès
+                                {% elif category == 'danger' %}
+                                    <i class="fas fa-exclamation-circle me-2"></i>Erreur
+                                {% elif category == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Avertissement
+                                {% else %}
+                                    <i class="fas fa-info-circle me-2"></i>Information
+                                {% endif %}
+                            </strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fermer"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">E-KAY</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Accueil</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard') }}">Tableau de bord</a>
+                        </li>
+                        {% if current_user.is_landlord %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('new_property') }}">Ajouter un bien</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="nav-link">Bonjour, {{ current_user.username }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Déconnexion</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Connexion</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">Inscription</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <main>
+                    {% block content %}{% endblock %}
+                </main>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <!-- Village Info Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Village EKAM
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="village-info">
+                            <p class="card-text">
+                                <i class="fas fa-users me-2 text-muted"></i>
+                                <strong>Communauté :</strong> Environ 1,500 habitants
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-map-marker-alt me-2 text-muted"></i>
+                                <strong>Localisation :</strong> Caracol, Haïti
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-home me-2 text-muted"></i>
+                                <strong>Type :</strong> Communauté résidentielle
+                            </p>
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" 
+                                    data-bs-toggle="modal" data-bs-target="#villageMapModal">
+                                <i class="fas fa-map-marked-alt me-1"></i>
+                                Voir sur la carte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Village Map Modal -->
+    <div class="modal fade" id="villageMapModal" tabindex="-1" aria-labelledby="villageMapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="villageMapModalLabel">
+                        <i class="fas fa-map-marked-alt me-2"></i>
+                        Localisation du Village EKAM
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="villageMap" style="height: 500px; width: 100%;"></div>
+                </div>
+                <div class="modal-footer">
+                    <p class="text-muted small mb-0 me-auto">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Coordonnées : 19.6917° N, -71.8250° O
+                    </p>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <h6 class="fw-bold">E-KAY Platform</h6>
+                    <p class="text-muted small mb-2">Plateforme de location pour le village EKAM</p>
+                    <p class="text-muted small mb-0">Trouvez facilement votre logement idéal</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-1">&copy; 2025 Walny Mardoché JULMICE. Tous droits réservés.</p>
+                    <p class="text-muted small mb-2">
+                        <a href="{{ url_for('index') }}" class="text-decoration-none me-2">À propos</a> |
+                        <a href="{{ url_for('index') }}" class="text-decoration-none mx-2">Contact</a> |
+                        <a href="#" class="text-decoration-none ms-2" data-bs-toggle="modal" data-bs-target="#licenseModal">Licence</a>
+                    </p>
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-envelope me-1"></i> julmicemardoche@gmail.com
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- License Modal -->
+    <div class="modal fade" id="licenseModal" tabindex="-1" aria-labelledby="licenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="licenseModalLabel">Licence d'utilisation - E-Kay</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-bold">© 2025 Walny Mardoché JULMICE. Tous droits réservés.</p>
+                    
+                    <p>Ce logiciel et tous ses éléments (code source, design, interface, données, documentation, etc.) sont la propriété exclusive de Walny Mardoché JULMICE.</p>
+                    
+                    <p>Toute reproduction, modification, diffusion ou utilisation, partielle ou totale, sans autorisation écrite préalable de l'auteur, est strictement interdite et constitue une violation du Code de la propriété intellectuelle et des lois internationales sur le droit d'auteur.</p>
+                    
+                    <p>L'utilisation de ce logiciel est réservée aux personnes ou entités ayant obtenu une autorisation explicite de l'auteur.</p>
+                    
+                    <p>Aucune cession ou transfert de droits n'est accordé, sauf stipulation écrite contraire.</p>
+                    
+                    <p class="mb-0"><strong>Contact officiel :</strong> julmicemardoche@gmail.com</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Service Worker temporairement désactivé pour le débogage -->
+    <script>
+    // Désactiver le service worker pour le débogage
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                console.log('Désenregistrement du Service Worker:', registration.scope);
+                registration.unregister();
+            }
+        });
+    }
+    
+    // Fonction pour afficher un message à l'utilisateur
+    function showAlert(message, type = 'info') {
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast show`;
+        toast.role = 'alert';
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        // Déterminer l'icône en fonction du type de message
+        let icon, title;
+        switch(type) {
+            case 'success':
+                icon = 'check-circle';
+                title = 'Succès';
+                break;
+            case 'danger':
+                icon = 'exclamation-circle';
+                title = 'Erreur';
+                break;
+            case 'warning':
+                icon = 'exclamation-triangle';
+                title = 'Avertissement';
+                break;
+            default:
+                icon = 'info-circle';
+                title = 'Information';
+        }
+        
+        toast.innerHTML = `
+            <div class="toast-header bg-${type} text-white">
+                <strong class="me-auto">
+                    <i class="fas fa-${icon} me-2"></i>${title}
+                </strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fermer"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Supprimer le message après 5 secondes
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+    
+    // Fonction pour afficher/masquer l'écran de chargement
+    function setLoading(show) {
+        const overlay = document.getElementById('loading-overlay');
+        if (show) {
+            overlay.style.display = 'flex';
+        } else {
+            overlay.style.display = 'none';
+        }
+    }
+    
+    // Intercepter les soumissions de formulaire pour afficher le chargement
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.method.toLowerCase() === 'post') {
+            setLoading(true);
+        }
+    });
+    
+    // Intercepter les clics sur les liens pour afficher le chargement
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && link.href && !link.href.includes('#')) {
+            setLoading(true);
+        }
+    });
+    
+    // Cacher le chargement une fois la page chargée
+    window.addEventListener('load', function() {
+        setLoading(false);
+        
+        // Vérifier la connexion au chargement de la page
+        if (!navigator.onLine) {
+            showAlert('Vous êtes actuellement hors ligne. Certaines fonctionnalités peuvent être limitées.', 'warning');
+        }
+    });
+    
+    // Gestion des changements de connexion
+    window.addEventListener('online', function() {
+        showAlert('Vous êtes de nouveau en ligne !', 'success');
+    });
+    
+    window.addEventListener('offline', function() {
+        showAlert('Vous êtes maintenant hors ligne. Certaines fonctionnalités peuvent être limitées.', 'warning');
+    });
+    
+    // Service Worker désactivé temporairement pour le débogage
+    console.log('Service Worker désactivé pour le débogage');
+    
+    // Vérification de la connexion réseau
+    function updateOnlineStatus() {
+        console.log('État de la connexion:', navigator.onLine ? 'en ligne' : 'hors ligne');
+    }
+    
+    // Vérifier l'état de la connexion au chargement de la page
+    window.addEventListener('load', function() {
+        updateOnlineStatus();
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // Désactiver complètement le service worker pour le débogage
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+        if (!navigator.onLine) {
+            // Afficher un message d'erreur en cas de déconnexion
+            const offlineAlert = document.createElement('div');
+            offlineAlert.className = 'alert alert-warning alert-dismissible fade show fixed-top m-3';
+            offlineAlert.role = 'alert';
+            offlineAlert.innerHTML = `
+                <i class="fas fa-wifi-slash me-2"></i>
+                <strong>Hors ligne</strong> - Certaines fonctionnalités sont limitées.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            `;
+            document.body.prepend(offlineAlert);
+        }
+    }
+  
+  // Vérifier l'état de la connexion au chargement de la page
+  window.addEventListener('load', function() {
+    updateOnlineStatus();
+    window.addEventListener('online', updateOnlineStatus);
+  });
+  
+  // Fonction pour afficher un message à l'utilisateur
+  function showAlert(message, type = 'info') {
+    const toastContainer = document.querySelector('.toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast show`;
+    toast.role = 'alert';
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+      });
+    </script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <script>
+    // Initialisation de la carte du village
+    document.addEventListener('DOMContentLoaded', function() {
+        const villageMapModal = document.getElementById('villageMapModal');
+        if (villageMapModal) {
+            let map = null;
+            let marker = null;
+
+            villageMapModal.addEventListener('shown.bs.modal', function () {
+                if (!map) {
+                    // Coordonnées du village EKAM (Caracol, Haïti)
+                    const villageCoords = [19.6917, -71.8250];
+                    
+                    // Créer la carte
+                    map = L.map('villageMap').setView(villageCoords, 15);
+                    
+                    // Ajouter la couche de tuiles OpenStreetMap
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                        maxZoom: 19
+                    }).addTo(map);
+                    
+                    // Ajouter un marqueur pour le village
+                    marker = L.marker(villageCoords, {
+                        title: 'Village EKAM',
+                        alt: 'Localisation du village EKAM',
+                        riseOnHover: true
+                    }).addTo(map);
+                    
+                    // Ajouter une popup avec des informations
+                    marker.bindPopup(`
+                        <div class="text-center">
+                            <h6 class="mb-2">Village EKAM</h6>
+                            <p class="mb-1"><i class="fas fa-map-marker-alt me-1"></i> Caracol, Haïti</p>
+                            <p class="mb-1"><i class="fas fa-users me-1"></i> Environ 1,500 habitants</p>
+                            <p class="mb-0"><i class="fas fa-home me-1"></i> Communauté résidentielle</p>
+                        </div>
+                    `).openPopup();
+                    
+                    // Ajuster la vue pour s'assurer que le marqueur est bien visible
+                    map.fitBounds([villageCoords], { padding: [50, 50] });
+                }
+            });
+            
+            // Nettoyer la carte lorsque la modale est fermée
+            villageMapModal.addEventListener('hidden.bs.modal', function () {
+                if (map) {
+                    map.invalidateSize();
+                }
+            });
+        }
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

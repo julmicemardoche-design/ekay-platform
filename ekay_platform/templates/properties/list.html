@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ title }}</h1>
+    
+    <div class="row">
+        {% if properties %}
+            {% for property in properties %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    {% if property.images %}
+                    <img src="{{ url_for('static', filename='uploads/' + property.images[0].filename) }}" 
+                         class="card-img-top" alt="{{ property.title }}">
+                    {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-home fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ property.title }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ property.address }}
+                        </p>
+                        <p class="card-text">
+                            <span class="badge bg-primary">{{ property.rooms }} pièces</span>
+                            <span class="badge bg-success ms-2">{{ "%.2f"|format(property.price) }} $/mois</span>
+                        </p>
+                        <p class="card-text">
+                            {{ property.description|truncate(150) }}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('property_detail', property_id=property.id) }}" 
+                           class="btn btn-primary w-100">
+                            Voir les détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    Aucun bien immobilier disponible pour le moment.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if current_user.is_authenticated and current_user.is_landlord %}
+    <div class="mt-4">
+        <a href="{{ url_for('new_property') }}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Ajouter un bien
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

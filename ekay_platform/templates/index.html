@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - E-KAY{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto text-center">
+        <h1 class="display-4 mb-3">Trouvez votre logement idéal au village EKAM</h1>
+        <p class="lead">Découvrez les biens disponibles à la location dans le village EKAM en temps réel</p>
+        
+        <!-- Search Form -->
+        <form class="mt-4" action="{{ url_for('index') }}" method="GET">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <select class="form-select" name="type">
+                        <option value="" selected>Tous les types</option>
+                        <option value="studio">Studio</option>
+                        <option value="t1">T1</option>
+                        <option value="t2">T2</option>
+                        <option value="t3">T3+</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="price">
+                        <option value="" selected>Budget max</option>
+                        <option value="50000">50,000 HTG</option>
+                        <option value="75000">75,000 HTG</option>
+                        <option value="100000">100,000 HTG</option>
+                        <option value="150000">150,000 HTG</option>
+                        <option value="200000">200,000+ HTG</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Rechercher
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Featured Properties -->
+<h2 class="mb-4">Biens disponibles</h2>
+
+{% if properties %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for property in properties %}
+        <div class="col">
+            <div class="card h-100 property-card">
+                {% if property.images %}
+                    <img src="{{ url_for('static', filename='uploads/' + property.images[0].filename) }}" 
+                         class="card-img-top" 
+                         alt="{{ property.title }}"
+                         style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-home fa-4x text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-1">{{ property.title }}</h5>
+                        <span class="badge bg-success">
+                            {{ "%0.0f"|format(property.price) }} HTG
+                        </span>
+                    </div>
+                    
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        {{ property.address }}
+                        {% if property.corridor %}({{ property.corridor }}){% endif %}
+                    </p>
+                    
+                    <div class="d-flex justify-content-between text-muted small mb-3">
+                        <span><i class="fas fa-door-open me-1"></i> {{ property.rooms }} chambre{% if property.rooms > 1 %}s{% endif %}</span>
+                        <span><i class="fas fa-palette me-1"></i> {{ property.color|default('Non spécifié') }}</span>
+                    </div>
+                    
+                    <p class="card-text text-truncate">{{ property.description }}</p>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <a href="{{ url_for('property_detail', property_id=property.id) }}" class="btn btn-outline-primary w-100">
+                        Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-3 fa-2x"></i>
+            <div>
+                <h5 class="mb-1">Aucun bien disponible pour le moment</h5>
+                <p class="mb-0">Revenez plus tard ou inscrivez-vous pour être informé des nouvelles annonces.</p>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% if current_user.is_authenticated and current_user.is_landlord %}
+    <div class="text-center mt-5">
+        <a href="{{ url_for('new_property') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus-circle me-2"></i>Publier une annonce
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

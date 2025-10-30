@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}À propos - E-KAY{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        À propos d'E-KAY
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h2>Notre Mission</h2>
+                            <p class="lead">
+                                E-KAY est une plateforme de location immobilière dédiée à la communauté du village EKAM.
+                                Notre objectif est de faciliter la mise en relation entre propriétaires et locataires,
+                                en offrant une expérience simple, sécurisée et efficace.
+                            </p>
+                            
+                            <h3 class="mt-4">Nos Valeurs</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Transparence</strong> : Des annonces claires et détaillées
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Sécurité</strong> : Une communauté de confiance
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Simplicité</strong> : Une interface intuitive et facile à utiliser
+                                </li>
+                            </ul>
+                            
+                            <h3 class="mt-4">Notre Équipe</h3>
+                            <p>
+                                Notre équipe est composée de professionnels passionnés par l'immobilier et les nouvelles technologies,
+                                engagés à fournir le meilleur service possible à notre communauté.
+                            </p>
+                            
+                            <div class="village-info mt-5 pt-4 border-top">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-map-marked-alt me-2 text-primary"></i>
+                                    Information sur le Village EKAM
+                                </h2>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h4 class="card-title">
+                                                    <i class="fas fa-home me-2 text-primary"></i>
+                                                    Présentation du Village
+                                                </h4>
+                                                <p class="card-text">
+                                                    Le village EKAM est une communauté dynamique située à Caracol, Haïti.
+                                                    Notre plateforme E-KAY est spécialement conçue pour répondre aux besoins
+                                                    immobiliers de notre communauté locale.
+                                                </p>
+                                                
+                                                <h5 class="mt-4">
+                                                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                                                    Localisation
+                                                </h5>
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-globe-americas me-2 text-muted"></i>
+                                                        <strong>Région :</strong> Nord-Est d'Haïti
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-city me-2 text-muted"></i>
+                                                        <strong>Ville la plus proche :</strong> Caracol
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-road me-2 text-muted"></i>
+                                                        <strong>Accès :</strong> Route nationale 6
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mt-4 mt-md-0">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h4 class="card-title">
+                                                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                                                    Caractéristiques
+                                                </h4>
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-home me-2 text-muted"></i>
+                                                        <strong>Type d'habitat :</strong> Maisons individuelles et logements collectifs
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-users me-2 text-muted"></i>
+                                                        <strong>Communauté :</strong> Environ 1,500 habitants
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-calendar-alt me-2 text-muted"></i>
+                                                        <strong>Année de création :</strong> 2020
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-sun me-2 text-muted"></i>
+                                                        <strong>Climat :</strong> Tropical
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="fas fa-language me-2 text-muted"></i>
+                                                        <strong>Langues :</strong> Créole haïtien, Français
+                                                    </li>
+                                                </ul>
+                                                
+                                                <div class="mt-4">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#villageMapModal">
+                                                        <i class="fas fa-map-marked-alt me-1"></i>
+                                                        Voir sur la carte
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mt-4 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h4>
+                                            <i class="fas fa-heart me-2 text-primary"></i>
+                                            Vie Communautaire
+                                        </h4>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h5 class="mt-3">Équipements</h5>
+                                                <ul>
+                                                    <li>École communautaire</li>
+                                                    <li>Centre de santé</li>
+                                                    <li>Espace communautaire</li>
+                                                    <li>Point d'eau potable</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h5 class="mt-3">Activités</h5>
+                                                <ul>
+                                                    <li>Réunions communautaires mensuelles</li>
+                                                    <li>Ateliers de formation</li>
+                                                    <li>Événements culturels</li>
+                                                    <li>Activités éducatives</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h4><i class="fas fa-envelope me-2"></i>Contactez-nous</h4>
+                                    <p class="mb-1"><i class="fas fa-phone me-2"></i> +509 44 44 4444</p>
+                                    <p class="mb-1"><i class="fas fa-envelope me-2"></i> contact@ekay.com</p>
+                                    <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> Village EKAM, Caracol, Haïti</p>
+                                    
+                                    <hr>
+                                    
+                                    <h5>Heures d'ouverture</h5>
+                                    <p class="mb-1">Lundi - Vendredi: 9h - 17h</p>
+                                    <p class="mb-0">Samedi: 9h - 13h</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour la carte du village -->
+<div class="modal fade" id="villageMapModal" tabindex="-1" aria-labelledby="villageMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="villageMapModalLabel">
+                    <i class="fas fa-map-marked-alt me-2"></i>
+                    Localisation du Village EKAM
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="villageMap" style="height: 500px; width: 100%;"></div>
+            </div>
+            <div class="modal-footer">
+                <p class="text-muted small mb-0 me-auto">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Coordonnées : 19.6917° N, -71.8250° O
+                </p>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+<script>
+// Attendre que le DOM soit chargé
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser la carte lorsque la modale est affichée
+    const mapModal = document.getElementById('villageMapModal');
+    if (mapModal) {
+        let map = null;
+        let marker = null;
+
+        mapModal.addEventListener('shown.bs.modal', function () {
+            if (!map) {
+                // Coordonnées du village EKAM (Caracol, Haïti)
+                const villageCoords = [19.6917, -71.8250];
+                
+                // Créer la carte
+                map = L.map('villageMap').setView(villageCoords, 15);
+                
+                // Ajouter la couche de tuiles OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Ajouter un marqueur pour le village
+                marker = L.marker(villageCoords, {
+                    title: 'Village EKAM',
+                    alt: 'Localisation du village EKAM',
+                    riseOnHover: true
+                }).addTo(map);
+                
+                // Ajouter une popup avec des informations
+                marker.bindPopup(`
+                    <div class="text-center">
+                        <h6 class="mb-2">Village EKAM</h6>
+                        <p class="mb-1"><i class="fas fa-map-marker-alt me-1"></i> Caracol, Haïti</p>
+                        <p class="mb-1"><i class="fas fa-users me-1"></i> Environ 1,500 habitants</p>
+                        <p class="mb-0"><i class="fas fa-home me-1"></i> Communauté résidentielle</p>
+                    </div>
+                `).openPopup();
+                
+                // Ajuster la vue pour s'assurer que le marqueur est bien visible
+                map.fitBounds([villageCoords], { padding: [50, 50] });
+            }
+        });
+        
+        // Nettoyer la carte lorsque la modale est fermée
+        mapModal.addEventListener('hidden.bs.modal', function () {
+            if (map) {
+                map.invalidateSize();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

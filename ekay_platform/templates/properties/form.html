@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.id.data %}Modifier{% else %}Ajouter{% endif %} un bien - E-KAY{% endblock %}
+
+{% block extra_css %}
+<style>
+    .image-preview {
+        height: 200px;
+        background-color: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .image-preview img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    
+    .image-upload-container {
+        margin-bottom: 1.5rem;
+    }
+    
+    .image-upload-btn {
+        margin-top: 1rem;
+    }
+    
+    .image-thumbnail {
+        height: 100px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .image-thumbnail:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .image-remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .image-item:hover .image-remove-btn {
+        opacity: 1;
+    }
+    
+    .image-item {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-home me-2"></i>
+                        {% if form.id.data %}Modifier le bien{% else %}Ajouter un nouveau bien{% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    {{ form.title.label(class="form-label fw-bold") }}
+                                    {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="Ex: Jolie maison avec jardin") }}
+                                    {% if form.title.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.title.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.description.label(class="form-label fw-bold") }}
+                                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5, placeholder="Décrivez votre bien en détail...") }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.description.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.price.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder="0.00") }}
+                                            </div>
+                                            <small class="text-muted">Prix mensuel</small>
+                                            {% if form.price.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.price.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.annual_price.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ form.annual_price(class="form-control" + (" is-invalid" if form.annual_price.errors else ""), placeholder="0.00") }}
+                                            </div>
+                                            <small class="text-muted">Prix annuel (optionnel)</small>
+                                            {% if form.annual_price.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.annual_price.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.rooms.label(class="form-label fw-bold") }}
+                                            {{ form.rooms(class="form-control" + (" is-invalid" if form.rooms.errors else "")) }}
+                                            {% if form.rooms.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.rooms.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.village.label(class="form-label fw-bold") }}
+                                            {{ form.village(class="form-control" + (" is-invalid" if form.village.errors else "")) }}
+                                            {% if form.village.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.village.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.address.label(class="form-label fw-bold") }}
+                                    {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), placeholder="Adresse complète") }}
+                                    {% if form.address.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.address.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.corridor.label(class="form-label fw-bold") }}
+                                    {{ form.corridor(class="form-control" + (" is-invalid" if form.corridor.errors else ""), placeholder="Numéro de couloir (optionnel)") }}
+                                    {% if form.corridor.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.corridor.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.latitude.label(class="form-label fw-bold") }}
+                                            {{ form.latitude(class="form-control" + (" is-invalid" if form.latitude.errors else "")) }}
+                                            {% if form.latitude.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.latitude.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.longitude.label(class="form-label fw-bold") }}
+                                            {{ form.longitude(class="form-control" + (" is-invalid" if form.longitude.errors else "")) }}
+                                            {% if form.longitude.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.longitude.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.is_available(class="form-check-input" + (" is-invalid" if form.is_available.errors else "")) }}
+                                        {{ form.is_available.label(class="form-check-label fw-bold") }}
+                                        {% if form.is_available.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.is_available.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.color.label(class="form-label fw-bold") }}
+                                    <div class="input-group color-picker">
+                                        {{ form.color(class="form-control" + (" is-invalid" if form.color.errors else ""), placeholder="#FFFFFF") }}
+                                        <span class="input-group-text color-preview" style="background-color: {{ form.color.data if form.color.data else '#FFFFFF' }}"></span>
+                                    </div>
+                                    {% if form.color.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.color.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.property_type.label(class="form-label fw-bold") }}
+                                            {{ form.property_type(class="form-select" + (" is-invalid" if form.property_type.errors else "")) }}
+                                            {% if form.property_type.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.property_type.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.transaction_type.label(class="form-label fw-bold") }}
+                                            {{ form.transaction_type(class="form-select" + (" is-invalid" if form.transaction_type.errors else "")) }}
+                                            {% if form.transaction_type.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.transaction_type.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            {{ form.price.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder="0") }}
+                                                <span class="input-group-text">HTG/mois</span>
+                                                {% if form.price.errors %}
+                                                    <div class="invalid-feedback">
+                                                        {{ form.price.errors[0] }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            {{ form.annual_price.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                {{ form.annual_price(class="form-control" + (" is-invalid" if form.annual_price.errors else ""), placeholder="0") }}
+                                                <span class="input-group-text">HTG/an</span>
+                                                {% if form.annual_price.errors %}
+                                                    <div class="invalid-feedback">
+                                                        {{ form.annual_price.errors[0] }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <small class="text-muted">Laissez vide pour calculer automatiquement (prix mensuel × 12)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            {{ form.area.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                {{ form.area(class="form-control" + (" is-invalid" if form.area.errors else ""), placeholder="0") }}
+                                                <span class="input-group-text">m²</span>
+                                                {% if form.area.errors %}
+                                                    <div class="invalid-feedback">
+                                                        {{ form.area.errors[0] }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            {{ form.rooms.label(class="form-label fw-bold") }}
+                                            {{ form.rooms(class="form-select" + (" is-invalid" if form.rooms.errors else "")) }}
+                                            {% if form.rooms.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.rooms.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.bedrooms.label(class="form-label fw-bold") }}
+                                            {{ form.bedrooms(class="form-select" + (" is-invalid" if form.bedrooms.errors else "")) }}
+                                            {% if form.bedrooms.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.bedrooms.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.bathrooms.label(class="form-label fw-bold") }}
+                                            {{ form.bathrooms(class="form-select" + (" is-invalid" if form.bathrooms.errors else "")) }}
+                                            {% if form.bathrooms.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.bathrooms.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.village.label(class="form-label fw-bold") }}
+                                            {{ form.village(class="form-control" + (" is-invalid" if form.village.errors else ""), placeholder="Ex: La Différence") }}
+                                            {% if form.village.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.village.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.address.label(class="form-label fw-bold") }}
+                                            {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), placeholder="Adresse complète") }}
+                                            {% if form.address.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.address.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.latitude.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                                {{ form.latitude(class="form-control" + (" is-invalid" if form.latitude.errors else ""), placeholder="Ex: 19.6917") }}
+                                            </div>
+                                            <small class="form-text text-muted">Coordonnée de latitude (ex: 19.6917)</small>
+                                            {% if form.latitude.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.latitude.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.longitude.label(class="form-label fw-bold") }}
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                                {{ form.longitude(class="form-control" + (" is-invalid" if form.longitude.errors else ""), placeholder="Ex: -71.8250") }}
+                                            </div>
+                                            <small class="form-text text-muted">Coordonnée de longitude (ex: -71.8250)</small>
+                                            {% if form.longitude.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.longitude.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            {{ form.city.label(class="form-label fw-bold") }}
+                                            {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""), placeholder="Ville") }}
+                                            {% if form.city.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.city.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            {{ form.postal_code.label(class="form-label fw-bold") }}
+                                            {{ form.postal_code(class="form-control" + (" is-invalid" if form.postal_code.errors else ""), placeholder="Code postal") }}
+                                            {% if form.postal_code.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.postal_code.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            {{ form.floor.label(class="form-label fw-bold") }}
+                                            {{ form.floor(class="form-control" + (" is-invalid" if form.floor.errors else ""), placeholder="Étage") }}
+                                            {% if form.floor.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.floor.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.is_furnished(class="form-check-input" + (" is-invalid" if form.is_furnished.errors else "")) }}
+                                        {{ form.is_furnished.label(class="form-check-label fw-bold") }}
+                                        {% if form.is_furnished.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.is_furnished.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.has_elevator(class="form-check-input" + (" is-invalid" if form.has_elevator.errors else "")) }}
+                                        {{ form.has_elevator.label(class="form-check-label fw-bold") }}
+                                        {% if form.has_elevator.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.has_elevator.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.has_balcony(class="form-check-input" + (" is-invalid" if form.has_balcony.errors else "")) }}
+                                        {{ form.has_balcony.label(class="form-check-label fw-bold") }}
+                                        {% if form.has_balcony.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.has_balcony.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.has_parking(class="form-check-input" + (" is-invalid" if form.has_parking.errors else "")) }}
+                                        {{ form.has_parking.label(class="form-check-label fw-bold") }}
+                                        {% if form.has_parking.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.has_parking.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.pets_allowed(class="form-check-input" + (" is-invalid" if form.pets_allowed.errors else "")) }}
+                                        {{ form.pets_allowed.label(class="form-check-label fw-bold") }}
+                                        {% if form.pets_allowed.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.pets_allowed.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.available_from.label(class="form-label fw-bold") }}
+                                    {{ form.available_from(class="form-control" + (" is-invalid" if form.available_from.errors else "")) }}
+                                    {% if form.available_from.errors %}
+                                        <div class="invalid-feedback">
+                                            {{ form.available_from.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Images du bien</label>
+                                    <div class="image-upload-container mb-3">
+                                        <div class="image-preview" id="imagePreview">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                        {{ form.images(class="d-none", id="imageInput") }}
+                                        <button type="button" class="btn btn-outline-primary w-100 image-upload-btn" onclick="document.getElementById('imageInput').click()">
+                                            <i class="fas fa-upload me-2"></i>Choisir des images
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="row" id="imageThumbnails">
+                                        {% if property and property.images %}
+                                            {% for image in property.images %}
+                                                <div class="col-6 col-md-12 mb-2 image-item" id="image-{{ image.id }}">
+                                                    <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" class="img-thumbnail w-100" alt="Image du bien">
+                                                    <button type="button" class="btn btn-danger btn-sm image-remove-btn" onclick="removeImage(this, '{{ image.id }}')">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                    <input type="hidden" name="existing_images[]" value="{{ image.id }}">
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-save me-2"></i>
+                                        {% if form.id.data %}Mettre à jour{% else %}Ajouter le bien{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Annuler
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Preview image before upload
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const imageThumbnails = document.getElementById('imageThumbnails');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            
+            if (files.length > 0) {
+                // Clear previous preview
+                imagePreview.innerHTML = '';
+                
+                // Show first image in the preview
+                const file = files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-fluid';
+                    imagePreview.appendChild(img);
+                };
+                
+                reader.readAsDataURL(file);
+                
+                // Add thumbnails for all selected files
+                for (let i = 0; i < files.length; i++) {
+                    const reader = new FileReader();
+                    const file = files[i];
+                    
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-6 col-md-12 mb-2 image-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail w-100';
+                        img.style.height = '100px';
+                        img.style.objectFit = 'cover';
+                        
+                        col.appendChild(img);
+                        imageThumbnails.appendChild(col);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                imagePreview.innerHTML = `
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                    <p class="mt-2 mb-0 text-muted">Aucune image sélectionnée</p>
+                `;
+                
+                if (imageThumbnails) {
+                    imageThumbnails.innerHTML = '';
+                }
+            }
+        });
+    }
+    
+    // Remove image
+    function removeImage(button, imageId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+            const imageItem = document.getElementById(`image-${imageId}`);
+            if (imageItem) {
+                imageItem.remove();
+                // Add a hidden input to mark the image for deletion
+                const deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'deleted_images';
+                deleteInput.value = imageId;
+                document.querySelector('form').appendChild(deleteInput);
+            }
+        }
+    }
+    
+    // Initialize color picker
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorInput = document.querySelector('.color-picker input');
+        const colorPreview = document.querySelector('.color-picker .color-preview');
+        
+        if (colorInput && colorPreview) {
+            // Set initial color
+            if (!colorInput.value) {
+                colorInput.value = '#3498db';
+                colorPreview.style.backgroundColor = '#3498db';
+            } else {
+                colorPreview.style.backgroundColor = colorInput.value;
+            }
+            
+            // Update color on change
+            colorInput.addEventListener('input', function() {
+                colorPreview.style.backgroundColor = this.value;
+            });
+        }
+        
+        // Calculate annual price based on monthly price
+        const priceInput = document.getElementById('price');
+        const annualPriceInput = document.getElementById('annual_price');
+        
+        if (priceInput && annualPriceInput) {
+            priceInput.addEventListener('input', updateAnnualPrice);
+        }
+    });
+    
+    function updateAnnualPrice() {
+        const price = parseFloat(priceInput.value) || 0;
+        const annualPrice = price * 12;
+        
+        if (annualPrice > 0) {
+            annualPriceInput.value = annualPrice.toFixed(2);
+        } else {
+            annualPriceInput.value = '';
+        }
+    }
+</script>
+
+<!-- Include Flatpickr for date inputs -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - E-KAY{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section bg-light py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Trouvez votre logement idéal à EKAM</h1>
+                <p class="lead mb-4">Découvrez les meilleures offres de location au cœur du village EKAM. Des biens de qualité pour tous les budgets.</p>
+                <a href="{{ url_for('main.search') }}" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-search me-2"></i>Rechercher un bien
+                </a>
+                {% if current_user.is_authenticated and current_user.is_landlord %}
+                    <a href="{{ url_for('properties.new_property') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Déposer une annonce
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="{{ url_for('static', filename='images/hero-image.jpg') }}" alt="Bienvenue sur E-KAY" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="search-widget bg-white p-4 rounded shadow-sm mb-5">
+    <div class="container">
+        <form action="{{ url_for('main.search') }}" method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="property_type" class="form-label">Type de bien</label>
+                <select class="form-select" id="property_type" name="property_type">
+                    <option value="" selected>Tous les types</option>
+                    <option value="apartment">Appartement</option>
+                    <option value="house">Maison</option>
+                    <option value="room">Chambre</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="rooms" class="form-label">Pièces</label>
+                <select class="form-select" id="rooms" name="rooms">
+                    <option value="">Tous</option>
+                    <option value="1">1 pièce</option>
+                    <option value="2">2 pièces</option>
+                    <option value="3">3 pièces</option>
+                    <option value="4">4 pièces +</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="price_range" class="form-label">Prix mensuel</label>
+                <div class="d-flex align-items-center">
+                    <input type="number" class="form-control me-2" id="min_price" name="min_price" placeholder="Min">
+                    <span class="mx-2">-</span>
+                    <input type="number" class="form-control ms-2" id="max_price" name="max_price" placeholder="Max">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="location" class="form-label">Localisation</label>
+                <input type="text" class="form-control" id="location" name="location" placeholder="Quartier, adresse...">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Featured Properties -->
+<section class="featured-properties mb-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 fw-bold">Dernières annonces</h2>
+            <a href="{{ url_for('main.search') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+        </div>
+        
+        {% if properties.items %}
+            <div class="row g-4">
+                {% for property in properties.items %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 property-card">
+                            {% if property.images.first() %}
+                                <img src="{{ url_for('static', filename='uploads/' + property.images.first().filename) }}" class="card-img-top" alt="{{ property.title }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="card-img-top" alt="Image non disponible">
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-1">{{ property.title }}</h5>
+                                    <span class="badge bg-primary">{{ property.property_type|title }}</span>
+                                </div>
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ property.address }}
+                                </p>
+                                <div class="property-features d-flex mb-3">
+                                    <span class="me-3"><i class="fas fa-bed me-1"></i> {{ property.bedrooms }} ch.</span>
+                                    <span class="me-3"><i class="fas fa-ruler-combined me-1"></i> {{ property.area }} m²</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h4 class="text-primary mb-0">{{ "%0.0f"|format(property.price|float) }} €/mois</h4>
+                                    <a href="{{ url_for('main.property', id=property.id) }}" class="btn btn-sm btn-outline-primary">Voir plus</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if properties.pages > 1 %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if properties.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.index', page=properties.prev_num) }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">&laquo;</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in properties.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == properties.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('main.index', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if properties.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.index', page=properties.next_num) }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">&raquo;</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+            
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-home fa-4x text-muted"></i>
+                </div>
+                <h3 class="h4 mb-3">Aucune annonce disponible pour le moment</h3>
+                <p class="text-muted">Revenez plus tard pour découvrir nos nouvelles offres de location.</p>
+                {% if current_user.is_authenticated and current_user.is_landlord %}
+                    <a href="{{ url_for('properties.new_property') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Déposer une annonce
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Pourquoi choisir E-KAY ?</h2>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-home fa-3x text-primary"></i>
+                </div>
+                <h4>Large choix de biens</h4>
+                <p class="text-muted">Découvrez une sélection de biens soigneusement vérifiés pour répondre à tous vos besoins.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-euro-sign fa-3x text-primary"></i>
+                </div>
+                <h4>Prix transparents</h4>
+                <p class="text-muted">Des prix clairs et compétitifs sans frais cachés.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-headset fa-3x text-primary"></i>
+                </div>
+                <h4>Service client</h4>
+                <p class="text-muted">Une équipe à votre écoute pour vous accompagner dans votre recherche.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Vous êtes propriétaire ?</h2>
+        <p class="lead mb-4">Mettez votre bien en location dès aujourd'hui et trouvez des locataires fiables.</p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('properties.new_property') }}" class="btn btn-light btn-lg">Déposer une annonce</a>
+        {% else %}
+            <a href="{{ url_for('auth.register', next=url_for('properties.new_property')) }}" class="btn btn-light btn-lg me-2">Créer un compte</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg ms-2">Se connecter</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

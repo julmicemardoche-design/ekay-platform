@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription - E-KAY{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    .auth-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .auth-form .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 1rem;
+    }
+    
+    .auth-form .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .form-text {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+    
+    .btn-auth {
+        width: 100%;
+        padding: 0.75rem;
+        font-weight: 600;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .user-type-selector {
+        display: flex;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .user-type-option {
+        flex: 1;
+        text-align: center;
+        padding: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-right: 1px solid #e0e0e0;
+    }
+    
+    .user-type-option:last-child {
+        border-right: none;
+    }
+    
+    .user-type-option input[type="radio"] {
+        display: none;
+    }
+    
+    .user-type-option label {
+        display: block;
+        cursor: pointer;
+        margin: 0;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: all 0.3s;
+    }
+    
+    .user-type-option input[type="radio"]:checked + label {
+        background-color: #e3f2fd;
+        color: #1976d2;
+        font-weight: 600;
+    }
+    
+    .user-type-option i {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .password-strength {
+        height: 4px;
+        background-color: #e0e0e0;
+        border-radius: 2px;
+        margin-top: 0.25rem;
+        overflow: hidden;
+    }
+    
+    .password-strength-bar {
+        height: 100%;
+        width: 0;
+        background-color: #e74c3c;
+        transition: width 0.3s, background-color 0.3s;
+    }
+    
+    .password-requirements {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        margin-top: 0.5rem;
+    }
+    
+    .requirement {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+    
+    .requirement i {
+        margin-right: 0.5rem;
+        font-size: 0.6rem;
+    }
+    
+    .requirement.valid {
+        color: #2ecc71;
+    }
+    
+    .requirement.valid i {
+        color: #2ecc71;
+    }
+    
+    .terms-text {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-top: 1rem;
+    }
+    
+    .terms-text a {
+        color: #3498db;
+        text-decoration: none;
+    }
+    
+    .terms-text a:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+        .auth-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="auth-container">
+                <h1 class="auth-title">Créer un compte</h1>
+                
+                {# Flash messages #}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    {# User Type Selection #}
+                    <div class="mb-4">
+                        <label class="form-label">Je suis</label>
+                        <div class="user-type-selector">
+                            <div class="user-type-option">
+                                {{ form.is_landlord(id="is_landlord_false", value='n', class="d-none") }}
+                                <label for="is_landlord_false">
+                                    <i class="fas fa-home"></i>
+                                    <span>Je cherche un logement</span>
+                                </label>
+                            </div>
+                            <div class="user-type-option">
+                                {{ form.is_landlord(id="is_landlord_true", value='y', class="d-none") }}
+                                <label for="is_landlord_true">
+                                    <i class="fas fa-key"></i>
+                                    <span>Je propose un logement</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control" + (' is-invalid' if form.username.errors else ''), placeholder="Choisissez un nom d'utilisateur") }}
+                                <div class="form-text">Entre 3 et 20 caractères, lettres et chiffres uniquement</div>
+                                {% for error in form.username.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control" + (' is-invalid' if form.email.errors else ''), placeholder="votre@email.com") }}
+                                {% for error in form.email.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        <div class="input-group">
+                            <select id="phone_country" class="form-select" style="max-width: 200px;">
+                                <!-- Les options seront ajoutées dynamiquement par JavaScript -->
+                                <option value="HT" data-prefix="+509">🇭🇹 Haïti (+509)</option>
+                                <option value="FR" data-prefix="+33">🇫🇷 France (+33)</option>
+                                <option value="US" data-prefix="+1">🇺🇸 États-Unis (+1)</option>
+                                <!-- D'autres pays seront ajoutés dynamiquement -->
+                            </select>
+                            <input type="hidden" id="phone_prefix" name="phone_prefix" value="+509">
+                            <input type="hidden" id="phone_country_code" name="phone_country" value="HT">
+                            {{ form.phone(
+                                id="phone",
+                                class="form-control" + (' is-invalid' if form.phone.errors else ''), 
+                                placeholder="Votre numéro de téléphone"
+                            ) }}
+                            {% for error in form.phone.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">Nous vous enverrons un code de confirmation</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.password.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.password(class="form-control" + (' is-invalid' if form.password.errors else ''), placeholder="Créez un mot de passe") }}
+                                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength">
+                                    <div class="password-strength-bar" id="passwordStrength"></div>
+                                </div>
+                                <div class="password-requirements">
+                                    <div class="requirement" id="length-req">
+                                        <i class="fas fa-circle"></i>
+                                        <span>8 caractères minimum</span>
+                                    </div>
+                                    <div class="requirement" id="number-req">
+                                        <i class="fas fa-circle"></i>
+                                        <span>1 chiffre</span>
+                                    </div>
+                                    <div class="requirement" id="letter-req">
+                                        <i class="fas fa-circle"></i>
+                                        <span>1 lettre</span>
+                                    </div>
+                                </div>
+                                {% for error in form.password.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.confirm_password(class="form-control" + (' is-invalid' if form.confirm_password.errors else ''), placeholder="Confirmez le mot de passe") }}
+                                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% for error in form.confirm_password.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-4">
+                        {{ form.accept_tos(class="form-check-input" + (' is-invalid' if form.accept_tos.errors else '')) }}
+                        <label class="form-check-label" for="{{ form.accept_tos.id }}">
+                            J'accepte les <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">conditions d'utilisation</a> et la <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">politique de confidentialité</a>
+                        </label>
+                        {% for error in form.accept_tos.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    {{ form.submit(class="btn btn-primary btn-auth") }}
+                    
+                    <div class="auth-footer">
+                        <p class="mb-0">Vous avez déjà un compte ? 
+                            <a href="{{ url_for('auth.login') }}" class="text-primary">Se connecter</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Conditions d'utilisation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Acceptation des conditions</h6>
+                <p>En utilisant E-KAY, vous acceptez les conditions d'utilisation décrites ci-dessous.</p>
+                
+                <h6>2. Description du service</h6>
+                <p>E-KAY est une plateforme de location et de mise en relation entre propriétaires et locataires.</p>
+                
+                <h6>3. Compte utilisateur</h6>
+                <p>Vous êtes responsable de la confidentialité de votre compte et de votre mot de passe.</p>
+                
+                <h6>4. Contenu utilisateur</h6>
+                <p>Vous êtes responsable du contenu que vous publiez sur la plateforme.</p>
+                
+                <h6>5. Modifications des conditions</h6>
+                <p>Nous nous réservons le droit de modifier ces conditions à tout moment.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Politique de confidentialité</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Collecte des informations</h6>
+                <p>Nous collectons des informations personnelles lorsque vous créez un compte ou utilisez nos services.</p>
+                
+                <h6>2. Utilisation des informations</h6>
+                <p>Vos informations sont utilisées pour fournir, exploiter et améliorer nos services.</p>
+                
+                <h6>3. Partage des informations</h6>
+                <p>Nous ne partageons pas vos informations personnelles avec des tiers sans votre consentement.</p>
+                
+                <h6>4. Sécurité</h6>
+                <p>Nous mettons en œuvre des mesures de sécurité pour protéger vos informations.</p>
+                
+                <h6>5. Vos droits</h6>
+                <p>Vous avez le droit d'accéder, de modifier ou de supprimer vos informations personnelles.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+    
+    // Password strength checker
+    const passwordInput = document.getElementById('{{ form.password.id }}');
+    const passwordStrength = document.getElementById('passwordStrength');
+    const requirements = {
+        length: document.getElementById('length-req'),
+        number: document.getElementById('number-req'),
+        letter: document.getElementById('letter-req')
+    };
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let totalChecks = 0;
+            
+            // Check length
+            if (password.length >= 8) {
+                strength++;
+                totalChecks++;
+                requirements.length.classList.add('valid');
+            } else {
+                requirements.length.classList.remove('valid');
+            }
+            
+            // Check for numbers
+            if (/\d/.test(password)) {
+                strength++;
+                totalChecks++;
+                requirements.number.classList.add('valid');
+            } else {
+                requirements.number.classList.remove('valid');
+            }
+            
+            // Check for letters
+            if (/[a-zA-Z]/.test(password)) {
+                strength++;
+                totalChecks++;
+                requirements.letter.classList.add('valid');
+            } else {
+                requirements.letter.classList.remove('valid');
+            }
+            
+            // Update strength bar
+            const percentage = (strength / totalChecks) * 100;
+            passwordStrength.style.width = percentage + '%';
+            
+            // Update color based on strength
+            if (percentage < 50) {
+                passwordStrength.style.backgroundColor = '#e74c3c'; // Red
+            } else if (percentage < 80) {
+                passwordStrength.style.backgroundColor = '#f39c12'; // Orange
+            } else {
+                passwordStrength.style.backgroundColor = '#2ecc71'; // Green
+            }
+        });
+    }
+    
+    // Auto-focus first field on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstField = document.querySelector('input:not([type=hidden])');
+        if (firstField) {
+            firstField.focus();
+        }
+    });
+    
+    // Handle user type selection
+    const userTypeOptions = document.querySelectorAll('.user-type-option');
+    userTypeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                userTypeOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+            }
+        });
+    });
+    
+    // Initialize user type selection
+    const selectedType = document.querySelector('input[name="is_landlord"]:checked');
+    if (selectedType) {
+        selectedType.parentElement.classList.add('active');
+    } else {
+        // Default to first option if none selected
+        userTypeOptions[0].classList.add('active');
+    }
+    
+    // Handle form validation
+    const form = document.querySelector('.auth-form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    }
+    
+    // Gestion du sélecteur de pays
+    const phoneCountrySelect = document.getElementById('phone_country');
+    const phoneInput = document.getElementById('phone');
+    const phonePrefixInput = document.getElementById('phone_prefix');
+    const phoneCountryCodeInput = document.getElementById('phone_country_code');
+    
+    if (phoneCountrySelect && phoneInput && phonePrefixInput && phoneCountryCodeInput) {
+        // Mettre à jour le préfixe lorsque le pays change
+        phoneCountrySelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const prefix = selectedOption.getAttribute('data-prefix');
+            const countryCode = selectedOption.value;
+            
+            // Mettre à jour les champs cachés
+            phonePrefixInput.value = prefix;
+            phoneCountryCodeInput.value = countryCode;
+            
+            // Mettre à jour le préfixe dans le champ de téléphone
+            let currentValue = phoneInput.value.trim();
+            
+            // Supprimer l'ancien préfixe s'il existe
+            const currentPrefix = phonePrefixInput.value;
+            if (currentValue.startsWith(currentPrefix)) {
+                currentValue = currentValue.substring(currentPrefix.length).trim();
+            }
+            
+            // Ajouter le nouveau préfixe
+            phoneInput.value = `${prefix} ${currentValue}`.trim();
+        });
+        
+        // Formater le numéro de téléphone lors de la saisie
+        phoneInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, ''); // Supprimer tous les caractères non numériques
+            const selectedOption = phoneCountrySelect.options[phoneCountrySelect.selectedIndex];
+            const prefix = selectedOption.getAttribute('data-prefix').replace(/\D/g, ''); // Préfixe sans les caractères non numériques
+            
+            // Si la valeur commence par le préfixe, le supprimer pour le reformater
+            if (value.startsWith(prefix)) {
+                value = value.substring(prefix.length);
+            }
+            
+            // Limiter la longueur du numéro (15 chiffres max)
+            if (value.length > 15) {
+                value = value.substring(0, 15);
+            }
+            
+            // Formater le numéro avec des espaces pour une meilleure lisibilité
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 2 === 0) {
+                    formattedValue += ' ';
+                }
+                formattedValue += value[i];
+            }
+            
+            // Mettre à jour la valeur avec le préfixe et le numéro formaté
+            this.value = `${selectedOption.getAttribute('data-prefix')} ${formattedValue}`.trim();
+        });
+        
+        // Charger les pays depuis le fichier JSON
+        fetch('{{ url_for("static", filename="js/phone-codes.js") }}')
+            .then(response => response.text())
+            .then(scriptText => {
+                // Extraire le tableau des pays du script
+                const match = scriptText.match(/export const phoneCountries = (\[.*?\]);/s);
+                if (match && match[1]) {
+                    try {
+                        const phoneCountries = JSON.parse(match[1].replace(/\n/g, '').replace(/\s+/g, ' '));
+                        updateCountrySelect(phoneCountries);
+                    } catch (e) {
+                        console.error('Erreur lors du chargement des pays:', e);
+                    }
+                }
+            })
+            .catch(error => console.error('Erreur lors du chargement des données de pays:', error));
+        
+        // Fonction pour mettre à jour le sélecteur de pays
+        function updateCountrySelect(countries) {
+            if (!countries || !countries.length) return;
+            
+            // Trier les pays par nom
+            const sortedCountries = [...countries].sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Vider le sélecteur
+            phoneCountrySelect.innerHTML = '';
+            
+            // Ajouter les options de pays
+            sortedCountries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.code;
+                option.setAttribute('data-prefix', country.prefix);
+                option.textContent = `${country.flag} ${country.name} (${country.prefix})`;
+                
+                // Sélectionner Haïti par défaut
+                if (country.code === 'HT') {
+                    option.selected = true;
+                    phonePrefixInput.value = country.prefix;
+                    phoneCountryCodeInput.value = country.code;
+                }
+                
+                phoneCountrySelect.appendChild(option);
+            });
+        }
+    }
+</script>
+{% endblock %}

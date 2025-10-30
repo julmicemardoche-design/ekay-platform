@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nettoyage du cache - E-KAM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+        <h2 class="mb-3">Nettoyage du cache en cours</h2>
+        <p class="text-muted">Veuillez patienter pendant que nous nettoyons le cache de l'application...</p>
+        <div id="status" class="alert alert-info">Démarrage du nettoyage...</div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        
+        async function clearCacheAndReload() {
+            try {
+                // Désenregistrer tous les service workers
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    console.log('Désenregistrement du Service Worker:', registration.scope);
+                    await registration.unregister();
+                }
+                
+                // Effacer tous les caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                        cacheNames.map(cacheName => {
+                            console.log('Suppression du cache:', cacheName);
+                            return caches.delete(cacheName);
+                        })
+                    );
+                }
+                
+                // Effacer le stockage local et de session
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Forcer un rechargement complet
+                window.location.href = '/';
+                
+            } catch (error) {
+                console.error('Erreur lors du nettoyage du cache:', error);
+                statusEl.textContent = 'Erreur lors du nettoyage du cache. Veuillez vider manuellement le cache de votre navigateur.';
+                statusEl.className = 'alert alert-danger';
+                
+                // Rediriger quand même après un délai
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 5000);
+            }
+        }
+        
+        // Démarrer le nettoyage
+        if ('serviceWorker' in navigator) {
+            clearCacheAndReload();
+        } else {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
