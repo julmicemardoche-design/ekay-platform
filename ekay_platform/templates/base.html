@@ -3,12 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>{% block title %}E-KAY - Location au village EKAM{% endblock %}</title>
+    <meta name="description" content="Trouvez votre logement idéal au village EKAM. Location de maisons et appartements meublés avec toutes les commodités.">
+    <meta name="keywords" content="location, EKAY, EKAM, logement, location meublée, Haïti, immobilier">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ekay-theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/property-cards.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -20,31 +32,137 @@
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tF/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
     
     <!-- PWA Configuration -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="E-KAY">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
     <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/mstile-150x150.png') }}">
     <meta name="msapplication-TileColor" content="#0d6efd">
     <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
-    
-    <!-- iOS specific -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="E-KAM">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
-    
-    <!-- Windows 8/10/11 -->
-    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='icons/icon-192.png') }}">
-    <meta name="msapplication-TileColor" content="#0d6efd">
-    <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
-    {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Barre de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="E-KAY Logo" height="40" class="me-2">
+                <div class="d-flex align-items-center">
+                    <span class="d-none d-sm-inline me-2">E-KAY</span>
+                    <img src="{{ url_for('static', filename='images/ekam-logo-image.svg') }}" alt="EKAM" height="30" class="d-none d-sm-inline ms-2" style="border-radius: 4px;">
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home me-1"></i> Accueil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('properties.list_properties') }}">
+                            <i class="fas fa-building me-1"></i> Propriétés
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('properties.new_property') }}">
+                            <i class="fas fa-plus-circle me-1"></i> Déposer une annonce
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-1"></i> Tableau de bord
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.about') }}">
+                            <i class="fas fa-info-circle me-1"></i> À propos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.contact') }}">
+                            <i class="fas fa-envelope me-1"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if current_user.avatar %}
+                                <img src="{{ current_user.avatar_url() }}" class="rounded-circle me-2" width="30" height="30" alt="Profil">
+                            {% else %}
+                                <i class="fas fa-user-circle me-1"></i>
+                            {% endif %}
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>Mon profil</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('properties.my_properties') }}"><i class="fas fa-home me-2"></i>Mes biens</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('properties.my_bookings') }}"><i class="fas fa-calendar-check me-2"></i>Mes réservations</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('properties.host_bookings') }}"><i class="fas fa-home me-2"></i>Réservations reçues</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user.favorites') }}"><i class="fas fa-heart me-2"></i>Favoris</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.settings') }}"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
+                            
+                            {% if current_user.is_admin %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.admin_dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord Admin</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.new_property') }}">
+                                <i class="fas fa-plus-circle me-2"></i>Ajouter un bien</a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-users-cog me-2"></i>Gestion des utilisateurs</a></li>
+                            {% endif %}
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light me-2">
+                            <i class="fas fa-sign-in-alt me-1"></i>Connexion
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i>S'inscrire
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="flex-grow-1">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show mb-0" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
     <!-- Indicateur de chargement global -->
     <div id="loading-overlay" class="position-fixed w-100 h-100 bg-white d-flex justify-content-center align-items-center" style="z-index: 9999; display: none !important;">
         <div class="text-center">
@@ -55,138 +173,37 @@
         </div>
     </div>
 
-    <!-- Messages flash -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header bg-{{ category }} text-white">
-                            <strong class="me-auto">
-                                {% if category == 'success' %}
-                                    <i class="fas fa-check-circle me-2"></i>Succès
-                                {% elif category == 'danger' %}
-                                    <i class="fas fa-exclamation-circle me-2"></i>Erreur
-                                {% elif category == 'warning' %}
-                                    <i class="fas fa-exclamation-triangle me-2"></i>Avertissement
-                                {% else %}
-                                    <i class="fas fa-info-circle me-2"></i>Information
-                                {% endif %}
-                            </strong>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fermer"></button>
-                        </div>
-                        <div class="toast-body">
-                            {{ message }}
-                        </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
+    <!-- Conteneur pour les notifications toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;"></div>
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-auto">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">E-KAY</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Accueil</a>
-                    </li>
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}">Tableau de bord</a>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>E-KAY</h5>
+                    <p>Plateforme de location au village EKAM</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item">
+                            <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                                <i class="fas fa-info-circle me-1"></i>À propos
+                            </a>
                         </li>
-                        {% if current_user.is_landlord %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('new_property') }}">Ajouter un bien</a>
-                            </li>
-                        {% endif %}
-                    {% endif %}
-                </ul>
-                <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <span class="nav-link">Bonjour, {{ current_user.username }}</span>
+                        <li class="list-inline-item ms-3">
+                            <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#licenseModal">
+                                <i class="fas fa-file-alt me-1"></i>Licence
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('logout') }}">Déconnexion</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">Connexion</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">Inscription</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Flash Messages -->
-    <div class="container mt-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
-
-    <!-- Main Content -->
-    <div class="container my-4">
-        <div class="row">
-            <!-- Main Content -->
-            <div class="col-lg-9">
-                <main>
-                    {% block content %}{% endblock %}
-                </main>
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="col-lg-3">
-                <!-- Village Info Card -->
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-map-marker-alt me-2"></i>
-                            Village EKAM
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="village-info">
-                            <p class="card-text">
-                                <i class="fas fa-users me-2 text-muted"></i>
-                                <strong>Communauté :</strong> Environ 1,500 habitants
-                            </p>
-                            <p class="card-text">
-                                <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                <strong>Localisation :</strong> Caracol, Haïti
-                            </p>
-                            <p class="card-text">
-                                <i class="fas fa-home me-2 text-muted"></i>
-                                <strong>Type :</strong> Communauté résidentielle
-                            </p>
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" 
-                                    data-bs-toggle="modal" data-bs-target="#villageMapModal">
-                                <i class="fas fa-map-marked-alt me-1"></i>
-                                Voir sur la carte
-                            </button>
-                        </div>
-                    </div>
+                    </ul>
                 </div>
             </div>
+            <div class="text-center mt-3 pt-3 border-top border-secondary">
+                <p class="mb-0">&copy; {{ now().year }} E-KAY. Tous droits réservés.</p>
+            </div>
         </div>
-    </div>
+    </footer>
     
     <!-- Village Map Modal -->
     <div class="modal fade" id="villageMapModal" tabindex="-1" aria-labelledby="villageMapModalLabel" aria-hidden="true">
@@ -215,50 +232,26 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <h6 class="fw-bold">E-KAY Platform</h6>
-                    <p class="text-muted small mb-2">Plateforme de location pour le village EKAM</p>
-                    <p class="text-muted small mb-0">Trouvez facilement votre logement idéal</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-1">&copy; 2025 Walny Mardoché JULMICE. Tous droits réservés.</p>
-                    <p class="text-muted small mb-2">
-                        <a href="{{ url_for('index') }}" class="text-decoration-none me-2">À propos</a> |
-                        <a href="{{ url_for('index') }}" class="text-decoration-none mx-2">Contact</a> |
-                        <a href="#" class="text-decoration-none ms-2" data-bs-toggle="modal" data-bs-target="#licenseModal">Licence</a>
-                    </p>
-                    <p class="text-muted small mb-0">
-                        <i class="fas fa-envelope me-1"></i> julmicemardoche@gmail.com
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-    
-    <!-- License Modal -->
-    <div class="modal fade" id="licenseModal" tabindex="-1" aria-labelledby="licenseModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
+    <!-- Modal À propos -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="licenseModalLabel">Licence d'utilisation - E-Kay</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="aboutModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>À propos de E-KAY
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="fw-bold">© 2025 Walny Mardoché JULMICE. Tous droits réservés.</p>
+                    <h6>Bienvenue sur E-KAY</h6>
+                    <p>E-KAY est une plateforme de location de biens immobiliers au sein du village EKAM, conçue pour faciliter la mise en relation entre propriétaires et locataires.</p>
                     
-                    <p>Ce logiciel et tous ses éléments (code source, design, interface, données, documentation, etc.) sont la propriété exclusive de Walny Mardoché JULMICE.</p>
+                    <h6 class="mt-4">Notre mission</h6>
+                    <p>Simplifier la recherche de logement et la gestion locative au sein de notre communauté résidentielle.</p>
                     
-                    <p>Toute reproduction, modification, diffusion ou utilisation, partielle ou totale, sans autorisation écrite préalable de l'auteur, est strictement interdite et constitue une violation du Code de la propriété intellectuelle et des lois internationales sur le droit d'auteur.</p>
-                    
-                    <p>L'utilisation de ce logiciel est réservée aux personnes ou entités ayant obtenu une autorisation explicite de l'auteur.</p>
-                    
-                    <p>Aucune cession ou transfert de droits n'est accordé, sauf stipulation écrite contraire.</p>
-                    
-                    <p class="mb-0"><strong>Contact officiel :</strong> julmicemardoche@gmail.com</p>
+                    <h6 class="mt-4">Contact</h6>
+                    <p><i class="fas fa-envelope me-2"></i>contact@ekay-ekam.ht</p>
+                    <p><i class="fas fa-phone me-2"></i>+509 36 00 0000</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
@@ -267,21 +260,118 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Modal Licence -->
+    <div class="modal fade" id="licenseModal" tabindex="-1" aria-labelledby="licenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="licenseModalLabel">
+                        <i class="fas fa-file-alt me-2"></i>Licence d'utilisation - E-KAY
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. Propriété intellectuelle</h6>
+                    <p>Tous les contenus présents sur ce site sont la propriété exclusive de E-KAY ou de ses concédants de licence.</p>
+                    
+                    <h6 class="mt-4">2. Droits d'auteur</h6>
+                    <p class="fw-bold">© 2025 Walny Mardoché JULMICE. Tous droits réservés.</p>
+                    
+                    <p>Ce logiciel et tous ses éléments (code source, design, interface, données, documentation, etc.) sont la propriété exclusive de Walny Mardoché JULMICE.</p>
+                    
+                    <h6 class="mt-4">3. Restrictions d'utilisation</h6>
+                    <p>Toute reproduction, modification, diffusion ou utilisation, partielle ou totale, sans autorisation écrite préalable de l'auteur, est strictement interdite et constitue une violation du Code de la propriété intellectuelle et des lois internationales sur le droit d'auteur.</p>
+                    
+                    <p>L'utilisation de ce logiciel est réservée aux personnes ou entités ayant obtenu une autorisation explicite de l'auteur.</p>
+                    
+                    <h6 class="mt-4">4. Contact</h6>
+                    <p class="mb-0"><strong>Contact officiel :</strong> julmicemardoche@gmail.com</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton de retour en haut -->
+    <button onclick="topFunction()" id="backToTop" class="btn btn-primary rounded-circle" title="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Conteneur pour les messages toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <!-- Les messages toast seront insérés ici dynamiquement -->
+    </div>
+
+    <!-- Scripts JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <!-- Service Worker temporairement désactivé pour le débogage -->
+    {% if request.endpoint == 'main.index' %}
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+    {% endif %}
+    
     <script>
-    // Désactiver le service worker pour le débogage
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                console.log('Désenregistrement du Service Worker:', registration.scope);
-                registration.unregister();
+        // Fonction pour afficher un message à l'utilisateur
+        function showAlert(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast show`;
+            toast.role = 'alert';
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `
+                <div class="toast-header bg-${type} text-white">
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+            
+            // Supprimer le toast après 5 secondes
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        // Gestion du bouton de retour en haut
+        document.addEventListener('DOMContentLoaded', function() {
+            const mybutton = document.getElementById("backToTop");
+            if (mybutton) {
+                // Afficher ou masquer le bouton lors du défilement
+                window.onscroll = function() {
+                    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                        mybutton.style.display = "block";
+                    } else {
+                        mybutton.style.display = "none";
+                    }
+                };
+                
+                // Gestion du clic sur le bouton
+                mybutton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
             }
+            
+            // Initialisation des tooltips Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Initialisation des popovers Bootstrap
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
         });
-    }
+    </script>
     
     // Fonction pour afficher un message à l'utilisateur
     function showAlert(message, type = 'info') {
@@ -426,11 +516,6 @@
       });
     </script>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-    
     <script>
     // Initialisation de la carte du village
     document.addEventListener('DOMContentLoaded', function() {

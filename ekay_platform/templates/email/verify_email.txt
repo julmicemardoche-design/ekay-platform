@@ -1,0 +1,18 @@
+Bienvenue sur E-KAY !
+
+Bonjour {{ user.username }},
+
+Merci de vous être inscrit sur E-KAY. Pour commencer à utiliser votre compte, veuillez vérifier votre adresse email en cliquant sur le lien ci-dessous :
+
+{{ verify_url }}
+
+Si vous n'avez pas créé de compte sur E-KAY, vous pouvez ignorer cet email en toute sécurité.
+
+Ce lien expirera dans 24 heures pour des raisons de sécurité.
+
+Cordialement,
+L'équipe E-KAY
+
+---
+© 2025 E-KAY - Tous droits réservés
+Ceci est un email automatique, merci de ne pas y répondre.

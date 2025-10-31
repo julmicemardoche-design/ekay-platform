@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Tableau de bord</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'admin.dashboard' }}" 
+                           href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Tableau de bord
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'admin.add_property' }}" 
+                           href="{{ url_for('admin.add_property') }}">
+                            <i class="fas fa-plus-circle me-2"></i> Ajouter un bien
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if 'admin.manage_users' in request.endpoint }}" 
+                           href="{{ url_for('admin.manage_users') }}">
+                            <i class="fas fa-users me-2"></i> Gestion des utilisateurs
+                        </a>
+                    </li>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i> Paramètres
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="col-md-9">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block admin_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Additional admin scripts can be added here -->
+{% endblock %}

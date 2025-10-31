@@ -1,0 +1,902 @@
+{% extends "base.html" %}
+{% from "properties/_formhelpers.html" import render_field, render_checkbox, render_select, render_date_field %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .form-section {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.75rem;
+        margin-bottom: 1.75rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .price-type-selector {
+        transition: all 0.3s ease;
+    }
+    
+    .price-option {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .price-option i {
+        font-size: 1.25rem;
+        opacity: 0.8;
+    }
+    
+    .price-option:hover {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .price-type-selector input[type="radio"]:checked + label {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+    }
+    
+    .price-type-selector input[type="radio"]:checked + label i {
+        color: white;
+        opacity: 1;
+    }
+    .form-section h5 {
+        color: #2c3e50;
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .form-required:after {
+        content: " *";
+        color: #dc3545;
+    }
+    .image-upload-container {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .image-upload-container:hover {
+        border-color: #80bdff;
+        background-color: #f8f9fa;
+    }
+    .image-preview {
+        margin-top: 1rem;
+    }
+    .image-preview-item {
+        position: relative;
+        display: inline-block;
+        margin: 0.5rem;
+    }
+    .image-preview-item img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    .image-preview-item .remove-image {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    #map {
+        height: 300px;
+        width: 100%;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">{{ title }}</h2>
+                <div>
+                    <a href="{{ url_for('properties.list_properties') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ action }}" enctype="multipart/form-data" id="propertyForm" data-controller="property-form">
+                {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
+
+                <ul class="nav nav-tabs mb-4" id="formTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                            <i class="bi bi-house-door me-2"></i>Informations de base
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
+                            <i class="bi bi-card-checklist me-2"></i>Détails
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab">
+                            <i class="bi bi-geo-alt me-2"></i>Localisation
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pricing-tab" data-bs-toggle="tab" data-bs-target="#pricing" type="button" role="tab">
+                            <i class="bi bi-tag me-2"></i>Tarification
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="media-tab" data-bs-toggle="tab" data-bs-target="#media" type="button" role="tab">
+                            <i class="bi bi-images me-2"></i>Médias
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="formTabsContent">
+                    <!-- Onglet Informations de base -->
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                        <div class="form-section">
+                            <h5>Informations générales</h5>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    {{ render_field(form.title, class="form-control-lg") }}
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    {{ render_field(form.description, class="form-control", rows=6) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5>Type de bien</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ render_select(form.property_type) }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_select(form.transaction_type) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Détails -->
+                    <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                        <div class="form-section">
+                            <h5>Caractéristiques</h5>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    {{ render_field(form.area, suffix="m²") }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    {{ render_field(form.rooms) }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    {{ render_field(form.bedrooms) }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    {{ render_field(form.bathrooms) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ render_field(form.year_built) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ render_field(form.floor) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ render_field(form.total_floors) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5>Équipements</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="row">
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_kitchen) }}
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_parking) }}
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_garden) }}
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_balcony) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row">
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_pool) }}
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_elevator) }}
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.has_air_conditioning) }}
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            {{ render_checkbox(form.is_furnished) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Localisation -->
+                    <div class="tab-pane fade" id="location" role="tabpanel" aria-labelledby="location-tab">
+                        <div class="form-section">
+                            <h5>Adresse</h5>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    {{ render_field(form.address) }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_field(form.city) }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_field(form.state) }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_field(form.postal_code) }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_field(form.country) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ render_field(form.latitude) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ render_field(form.longitude) }}
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div id="map"></div>
+                                <div class="form-text mt-2">Cliquez sur la carte pour définir l'emplacement exact ou laissez le système le détecter automatiquement.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Tarification -->
+                    <div class="tab-pane fade" id="pricing" role="tabpanel" aria-labelledby="pricing-tab">
+                        <div class="form-section">
+                            <h5>Détails du prix</h5>
+                            <div class="row">
+                                <div class="col-md-12 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            {{ form.hidden_tag() }}
+                                            {{ form.price_info.alternate_price() }}
+                                            
+                                            <div class="row align-items-center">
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold">Prix</label>
+                                                    <div class="input-group">
+                                                        {{ form.price_info.price(
+                                                            class="form-control form-control-lg text-end",
+                                                            placeholder="0.00"
+                                                        ) }}
+                                                        <span class="input-group-text">{{ form.price_info.currency.data }}</span>
+                                                    </div>
+                                                    <div class="form-text mt-1">
+                                                        <small id="price-hint" class="text-muted">
+                                                            {{ 'Prix mensuel affiché' if form.price_info.price_type.data == 'monthly' else 'Prix annuel affiché' }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold">Période</label>
+                                                    <div class="btn-group w-100" role="group">
+                                                        <input type="radio" 
+                                                               class="btn-check" 
+                                                               name="{{ form.price_info.price_type.name }}" 
+                                                               id="price_type_monthly" 
+                                                               value="monthly" 
+                                                               {{ 'checked' if form.price_info.price_type.data == 'monthly' else '' }}>
+                                                        <label class="btn btn-outline-primary" for="price_type_monthly">
+                                                            <i class="bi bi-calendar-month me-1"></i> Mensuel
+                                                        </label>
+                                                        
+                                                        <input type="radio" 
+                                                               class="btn-check" 
+                                                               name="{{ form.price_info.price_type.name }}" 
+                                                               id="price_type_annual" 
+                                                               value="annual"
+                                                               {{ 'checked' if form.price_info.price_type.data == 'annual' else '' }}>
+                                                        <label class="btn btn-outline-primary" for="price_type_annual">
+                                                            <i class="bi bi-calendar-check me-1"></i> Annuel
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-4">
+                                                    <label class="form-label fw-bold">Devise</label>
+                                                    {{ form.price_info.currency(class="form-select form-select-lg") }}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <div class="alert alert-info py-2 mb-0" id="price-conversion-hint">
+                                                        <small>
+                                                            <i class="bi bi-info-circle me-1"></i>
+                                                            <span id="conversion-text"></span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-info py-2 mb-0" id="price-conversion-hint">
+                                        <small>
+                                            <i class="bi bi-info-circle"></i>
+                                            <span id="conversion-text"></span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ render_field(form.price_info.security_deposit, prefix=form.price_info.currency.data) }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_select(form.price_info.price_period) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch mt-3">
+                                        {{ form.price_info.includes_utilities(class="form-check-input") }}
+                                        <label class="form-check-label" for="{{ form.price_info.includes_utilities.id }}">
+                                            {{ form.price_info.includes_utilities.label.text }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3" id="utilities-cost-container" style="display: none;">
+                                    {{ render_field(form.price_info.utilities_cost, prefix=form.price_info.currency.data) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ render_field(form.minimum_rent_days, suffix="jours") }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ render_date_field(form.available_from) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h5>Règles et conditions</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ render_checkbox(form.allows_pets) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ render_checkbox(form.allows_smoking) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ render_checkbox(form.allows_events) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Médias -->
+                    <div class="tab-pane fade" id="media" role="tabpanel" aria-labelledby="media-tab">
+                        <div class="form-section">
+                            <h5>Photos</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Télécharger des photos</label>
+                                <div class="image-upload-container" id="dropZone">
+                                    <i class="bi bi-cloud-arrow-up fs-1 text-muted mb-2"></i>
+                                    <p class="mb-2">Glissez et déposez vos images ici ou cliquez pour sélectionner</p>
+                                    <p class="text-muted small mb-0">Formats acceptés : JPG, PNG, WebP (max 10 Mo par image)</p>
+                                    <input type="file" name="images" id="imageUpload" multiple accept="image/*" style="display: none;">
+                                </div>
+                                <div class="image-preview d-flex flex-wrap mt-3" id="imagePreview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" name="action" value="save_draft" class="btn btn-outline-secondary">
+                        <i class="bi bi-save me-2"></i>Enregistrer comme brouillon
+                    </button>
+                    <div>
+                        <a href="{{ url_for('properties.list_properties') }}" class="btn btn-light me-2">Annuler</a>
+                        <button type="submit" name="action" value="publish" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Publier l'annonce
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupérer les éléments du formulaire
+        const priceInput = document.getElementById('{{ form.price_info.price.id }}');
+        const priceTypeMonthly = document.getElementById('price_type_monthly');
+        const priceTypeAnnual = document.getElementById('price_type_annual');
+        const priceHint = document.getElementById('price-hint');
+        const conversionText = document.querySelector('#price-conversion-hint span');
+        const alternatePriceInput = document.getElementById('{{ form.price_info.alternate_price.id }}');
+        const currencyElement = document.querySelector('.input-group-text');
+        
+        // Mettre à jour le prix alternatif et le texte de conversion
+        function updatePriceConversion() {
+            if (!priceInput.value) return;
+            
+            const price = parseFloat(priceInput.value);
+            if (isNaN(price)) return;
+            
+            if (priceTypeMonthly.checked) {
+                // Convertir de mensuel à annuel
+                const annualPrice = (price * 12).toFixed(2);
+                alternatePriceInput.value = annualPrice;
+                conversionText.textContent = `Équivalent annuel: ${formatPrice(annualPrice)} ${currencyElement.textContent}`;
+            } else {
+                // Convertir de annuel à mensuel
+                const monthlyPrice = (price / 12).toFixed(2);
+                alternatePriceInput.value = monthlyPrice;
+                conversionText.textContent = `Équivalent mensuel: ${formatPrice(monthlyPrice)} ${currencyElement.textContent}`;
+            }
+        }
+        
+        // Mettre à jour le texte d'aide
+        function updatePriceHint() {
+            if (priceTypeMonthly.checked) {
+                priceHint.textContent = 'Prix mensuel affiché';
+            } else {
+                priceHint.textContent = 'Prix annuel affiché';
+            }
+            updatePriceConversion();
+        }
+        
+        // Formater un nombre avec des séparateurs de milliers
+        function formatPrice(amount) {
+            return parseFloat(amount).toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        // Écouteurs d'événements
+        if (priceTypeMonthly && priceTypeAnnual) {
+            priceTypeMonthly.addEventListener('change', updatePriceHint);
+            priceTypeAnnual.addEventListener('change', updatePriceHint);
+        }
+        
+        if (priceInput) {
+            priceInput.addEventListener('input', updatePriceConversion);
+        }
+        
+        // Initialisation
+        if (priceHint) {
+            updatePriceHint();
+        }
+    });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation de Flatpickr pour les champs de date
+    flatpickr('.datepicker', {
+        dateFormat: 'Y-m-d',
+        minDate: 'today',
+        locale: 'fr'
+    });
+
+    // Gestion du glisser-déposer des images
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('imageUpload');
+    const imagePreview = document.getElementById('imagePreview');
+    const maxFiles = 20; // Nombre maximum de fichiers autorisés
+
+    // Gestion du clic sur la zone de dépôt
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Gestion du glisser-déposer
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropZone.classList.add('border-primary');
+    }
+
+    function unhighlight() {
+        dropZone.classList.remove('border-primary');
+    }
+
+    // Gestion du dépôt de fichiers
+    dropZone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', handleFileSelect, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = e.target.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        const validFiles = Array.from(files).filter(file => file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024);
+        
+        if (validFiles.length === 0) {
+            alert('Veuillez sélectionner des fichiers image valides (max 10 Mo)');
+            return;
+        }
+
+        // Vérifier le nombre total de fichiers
+        const currentFileCount = imagePreview.children.length;
+        const remainingSlots = maxFiles - currentFileCount;
+        
+        if (validFiles.length > remainingSlots) {
+            alert(`Vous ne pouvez télécharger que ${remainingSlots} image(s) supplémentaire(s).`);
+            return;
+        }
+
+        // Afficher l'aperçu des images
+        validFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'image-preview-item';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="${file.name}">
+                    <div class="remove-image" title="Supprimer cette image">&times;</div>
+                `;
+                imagePreview.appendChild(previewItem);
+
+                // Gestion de la suppression d'image
+                const removeBtn = previewItem.querySelector('.remove-image');
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    previewItem.remove();
+                    updateFileInput();
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        updateFileInput();
+    }
+
+    function updateFileInput() {
+        const dataTransfer = new DataTransfer();
+        const previewItems = imagePreview.querySelectorAll('.image-preview-item');
+        
+        // Mettre à jour l'input file avec les fichiers restants
+        Array.from(fileInput.files).forEach(file => {
+            dataTransfer.items.add(file);
+        });
+        
+        fileInput.files = dataTransfer.files;
+    }
+
+    // Initialisation de la carte Leaflet
+    let map;
+    let marker;
+    const defaultLat = 18.5392; // Latitude par défaut (Port-au-Prince)
+    const defaultLng = -72.3364; // Longitude par défaut (Port-au-Prince)
+    
+    // Récupérer les coordonnées du formulaire si elles existent
+    const formLat = document.getElementById('latitude').value;
+    const formLng = document.getElementById('longitude').value;
+    const initialLat = formLat ? parseFloat(formLat) : defaultLat;
+    const initialLng = formLng ? parseFloat(formLng) : defaultLng;
+
+    function initMap() {
+        // Initialiser la carte avec les coordonnées du formulaire ou les valeurs par défaut
+        map = L.map('map').setView([initialLat, initialLng], 12);
+
+        // Ajouter une couche de tuiles (OpenStreetMap par défaut)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Ajouter un marqueur
+        marker = L.marker([defaultLat, defaultLng], {
+            draggable: true
+        }).addTo(map);
+
+        // Mettre à jour les champs de formulaire lorsque le marqueur est déplacé
+        marker.on('dragend', function(e) {
+            const position = marker.getLatLng();
+            document.getElementById('latitude').value = position.lat.toFixed(6);
+            document.getElementById('longitude').value = position.lng.toFixed(6);
+        });
+
+        // Mettre à jour le marqueur lorsque les coordonnées sont modifiées manuellement
+        document.getElementById('latitude').addEventListener('change', updateMarkerPosition);
+        document.getElementById('longitude').addEventListener('change', updateMarkerPosition);
+
+        // Géocodage inversé lors du clic sur la carte
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            updateFormFields(e.latlng);
+        });
+    }
+
+    function updateMarkerPosition() {
+        const lat = parseFloat(document.getElementById('latitude').value) || defaultLat;
+        const lng = parseFloat(document.getElementById('longitude').value) || defaultLng;
+        marker.setLatLng([lat, lng]);
+        map.setView([lat, lng], 15);
+    }
+
+    function updateFormFields(latlng) {
+        document.getElementById('latitude').value = latlng.lat.toFixed(6);
+        document.getElementById('longitude').value = latlng.lng.toFixed(6);
+    }
+
+    // Initialiser la carte
+    initMap();
+
+    // Gestion de l'affichage conditionnel du coût des charges
+    const includesUtilitiesCheckbox = document.getElementById('{{ form.price_info.includes_utilities.id }}');
+    const utilitiesCostContainer = document.getElementById('utilities-cost-container');
+    
+    function toggleUtilitiesCost() {
+        if (includesUtilitiesCheckbox.checked) {
+            utilitiesCostContainer.style.display = 'block';
+        } else {
+            utilitiesCostContainer.style.display = 'none';
+        }
+    }
+    
+    if (includesUtilitiesCheckbox) {
+        includesUtilitiesCheckbox.addEventListener('change', toggleUtilitiesCost);
+        // Initialiser l'état au chargement de la page
+        toggleUtilitiesCost();
+    }
+
+    // Gestion du prix mensuel/annuel
+    const priceTypeSelect = document.getElementById('{{ form.price_info.price_type.id }}');
+    const priceInput = document.getElementById('{{ form.price_info.price.id }}');
+    const alternatePriceInput = document.getElementById('{{ form.price_info.alternate_price.id }}');
+    const priceHint = document.getElementById('price-hint');
+    const conversionText = document.getElementById('conversion-text');
+    const currencySelect = document.getElementById('{{ form.price_info.currency.id }}');
+    const priceCurrency = document.getElementById('price-currency');
+    
+    // Mettre à jour la devise affichée
+    function updateCurrency() {
+        priceCurrency.textContent = currencySelect.value;
+    }
+    
+    // Mettre à jour le texte d'aide
+    function updatePriceHint() {
+        const isMonthly = priceTypeSelect.value === 'monthly';
+        priceHint.textContent = isMonthly ? 'Prix mensuel' : 'Prix annuel';
+        priceInput.placeholder = isMonthly ? 'Ex: 150000' : 'Ex: 1800000';
+        
+        // Mettre à jour le placeholder du champ de prix
+        const exampleValue = isMonthly ? '150000' : '1800000';
+        priceInput.placeholder = `Ex: ${exampleValue}`;
+        
+        // Mettre à jour le texte de conversion
+        updateConversionText();
+    }
+    
+    // Mettre à jour le texte de conversion
+    function updateConversionText() {
+        const price = parseFloat(priceInput.value) || 0;
+        const isMonthly = priceTypeSelect.value === 'monthly';
+        const currency = currencySelect.value;
+        
+        if (price > 0) {
+            if (isMonthly) {
+                const annual = price * 12;
+                conversionText.textContent = `Prix annuel: ${formatPrice(annual)} ${currency} (${formatPrice(price)} ${currency} × 12)`;
+                alternatePriceInput.value = annual.toFixed(2);
+            } else {
+                const monthly = price / 12;
+                conversionText.textContent = `Prix mensuel: ${formatPrice(monthly)} ${currency} (${formatPrice(price)} ${currency} ÷ 12)`;
+                alternatePriceInput.value = monthly.toFixed(2);
+            }
+            document.getElementById('price-conversion-hint').style.display = 'block';
+        } else {
+            document.getElementById('price-conversion-hint').style.display = 'none';
+        }
+    }
+    
+    // Formater un prix avec séparateurs de milliers
+    function formatPrice(amount) {
+        return new Intl.NumberFormat('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+    }
+    
+    // Initialisation
+    if (priceTypeSelect && priceInput && alternatePriceInput) {
+        // Écouteurs d'événements
+        priceTypeSelect.addEventListener('change', function() {
+            // Inverser les valeurs entre le champ de prix et le champ alternatif
+            const temp = priceInput.value;
+            priceInput.value = alternatePriceInput.value || '';
+            alternatePriceInput.value = temp;
+            
+            // Mettre à jour l'interface
+            updatePriceHint();
+            updateConversionText();
+        });
+        
+        priceInput.addEventListener('input', updateConversionText);
+        currencySelect.addEventListener('change', function() {
+            updateCurrency();
+            updateConversionText();
+        });
+        
+        // Initialiser l'interface
+        updateCurrency();
+        updatePriceHint();
+        updateConversionText();
+    }
+
+    // Validation du formulaire
+    const propertyForm = document.getElementById('propertyForm');
+    propertyForm.addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = propertyForm.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Veuillez remplir tous les champs obligatoires marqués d\'un astérisque (*)');
+            return false;
+        }
+
+        // Vérifier qu'au moins une image est téléchargée
+        if (imagePreview.children.length === 0) {
+            e.preventDefault();
+            alert('Veuvez télécharger au moins une photo du bien');
+            document.getElementById('media-tab').click();
+            return false;
+        }
+
+        return true;
+    });
+
+    // Gestion des onglets
+    const formTabs = document.querySelectorAll('#formTabs button[data-bs-toggle="tab"]');
+    formTabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('data-bs-target'));
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            target.classList.add('show', 'active');
+            
+            formTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Gestion de l'autocomplétion d'adresse
+    const addressInput = document.getElementById('address');
+    if (addressInput) {
+        // Utiliser un service d'autocomplétion d'adresse (ex: Algolia, Google Places, etc.)
+        // Ici, nous utilisons un exemple simple avec l'API OpenStreetMap Nominatim
+        addressInput.addEventListener('input', debounce(function(e) {
+            const query = e.target.value;
+            if (query.length < 3) return;
+            
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    // Afficher les suggestions d'adresse
+                    console.log('Suggestions:', data);
+                })
+                .catch(error => console.error('Erreur lors de la récupération des suggestions:', error));
+        }, 300));
+    }
+
+    // Fonction utilitaire pour limiter les appels API
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+});
+</script>
+{% endblock %}

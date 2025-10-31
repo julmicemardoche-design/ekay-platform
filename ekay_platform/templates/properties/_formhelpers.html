@@ -1,0 +1,82 @@
+{% macro render_field(field, class_='') %}
+    <div class="form-group mb-3">
+        <label for="{{ field.id }}" class="form-label {% if field.flags.required %}form-required{% endif %}">
+            {{ field.label.text }}
+        </label>
+        {% if field.type == 'BooleanField' %}
+            <div class="form-check">
+                {{ field(class_='form-check-input ' + class_, **kwargs)|safe }}
+                <label class="form-check-label" for="{{ field.id }}">
+                    {{ field.label.text }}
+                </label>
+            </div>
+        {% else %}
+            {% if field.type == 'TextAreaField' %}
+                {{ field(class_='form-control ' + class_, **kwargs)|safe }}
+            {% elif field.type == 'SelectField' %}
+                {{ field(class_='form-select ' + class_, **kwargs)|safe }}
+            {% else %}
+                <div class="input-group">
+                    {% if kwargs.get('prefix') %}
+                        <span class="input-group-text">{{ kwargs.get('prefix') }}</span>
+                    {% endif %}
+                    {{ field(class_='form-control ' + class_, **kwargs)|safe }}
+                    {% if kwargs.get('suffix') %}
+                        <span class="input-group-text">{{ kwargs.get('suffix') }}</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+            {% if field.description %}
+                <div class="form-text">{{ field.description }}</div>
+            {% endif %}
+            {% if field.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in field.errors %}
+                        {{ error }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro render_checkbox(field, class_='') %}
+    <div class="form-check form-switch">
+        {{ field(class_='form-check-input ' + class_, role="switch")|safe }}
+        <label class="form-check-label" for="{{ field.id }}">
+            {{ field.label.text }}
+        </label>
+    </div>
+{% endmacro %}
+
+{% macro render_select(field, class_='') %}
+    <div class="form-group mb-3">
+        <label for="{{ field.id }}" class="form-label {% if field.flags.required %}form-required{% endif %}">
+            {{ field.label.text }}
+        </label>
+        {{ field(class_='form-select ' + class_)|safe }}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro render_date_field(field, class_='') %}
+    <div class="form-group mb-3">
+        <label for="{{ field.id }}" class="form-label {% if field.flags.required %}form-required{% endif %}">
+            {{ field.label.text }}
+        </label>
+        {{ field(class_='form-control datepicker ' + class_)|safe }}
+        {% if field.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in field.errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}

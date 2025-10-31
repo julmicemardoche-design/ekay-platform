@@ -1,38 +1,79 @@
 {% extends "base.html" %}
 
-{% block title %}Accueil - E-KAY{% endblock %}
+{% block title %}Accueil - E-KAY - Location de biens immobiliers{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<div class="hero-section bg-light py-5 mb-5">
+<section class="hero-section py-5">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Trouvez votre logement idéal à EKAM</h1>
-                <p class="lead mb-4">Découvrez les meilleures offres de location au cœur du village EKAM. Des biens de qualité pour tous les budgets.</p>
-                <a href="{{ url_for('main.search') }}" class="btn btn-primary btn-lg me-2">
-                    <i class="fas fa-search me-2"></i>Rechercher un bien
-                </a>
-                {% if current_user.is_authenticated and current_user.is_landlord %}
-                    <a href="{{ url_for('properties.new_property') }}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-plus me-2"></i>Déposer une annonce
+            <div class="col-lg-6 order-lg-1 order-2 mt-4 mt-lg-0">
+                <div class="mb-4">
+                    <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 fw-normal">
+                        <i class="fas fa-home me-2"></i>Bienvenue sur E-KAY
+                    </span>
+                </div>
+                <h1 class="display-5 fw-bold mb-4">
+                    Votre logement idéal au <span class="text-primary">village EKAM</span>
+                </h1>
+                <p class="lead mb-4">Découvrez notre sélection de biens immobiliers de qualité, des appartements aux maisons, adaptés à tous les budgets.</p>
+                
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{{ url_for('main.search') }}" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-search me-2"></i>Rechercher un bien
                     </a>
-                {% endif %}
+                    {% if current_user.is_authenticated and current_user.is_landlord %}
+                        <a href="{{ url_for('properties.new_property') }}" class="btn btn-outline-primary btn-lg px-4">
+                            <i class="fas fa-plus me-2"></i>Déposer une annonce
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="fas fa-user-plus me-2"></i>Créer un compte
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex flex-wrap gap-4 text-muted">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Garantie de qualité</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-shield-alt text-success me-2"></i>
+                        <span>Sécurisé</span>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <img src="{{ url_for('static', filename='images/hero-image.jpg') }}" alt="Bienvenue sur E-KAY" class="img-fluid rounded shadow">
+            <div class="col-lg-6 order-lg-2 order-1">
+                <div class="position-relative">
+                    <img src="{{ url_for('static', filename='images/hero-image.jpg') }}" 
+                         alt="Résidence EKAM - Vue aérienne" 
+                         class="img-fluid rounded-4 shadow-lg"
+                         loading="lazy">
+                    <div class="position-absolute top-0 start-0 p-3">
+                        <div class="bg-white rounded-pill px-3 py-1 shadow-sm d-inline-flex align-items-center">
+                            <i class="fas fa-star text-warning me-1"></i>
+                            <span class="fw-medium">4.9/5</span>
+                            <span class="ms-2 text-muted small">(128 avis)</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Search Form -->
-<div class="search-widget bg-white p-4 rounded shadow-sm mb-5">
+<section class="search-widget bg-white py-4 shadow-sm sticky-top" style="z-index: 1020; top: 0;">
     <div class="container">
-        <form action="{{ url_for('main.search') }}" method="get" class="row g-3">
+        <form action="{{ url_for('main.search') }}" method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label for="property_type" class="form-label">Type de bien</label>
-                <select class="form-select" id="property_type" name="property_type">
+                <label for="property_type" class="form-label fw-medium">Type de bien</label>
+                <select class="form-select form-select-lg" id="property_type" name="property_type">
                     <option value="" selected>Tous les types</option>
                     <option value="apartment">Appartement</option>
                     <option value="house">Maison</option>
@@ -40,9 +81,9 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label for="rooms" class="form-label">Pièces</label>
-                <select class="form-select" id="rooms" name="rooms">
-                    <option value="">Tous</option>
+                <label for="rooms" class="form-label fw-medium">Pièces</label>
+                <select class="form-select form-select-lg" id="rooms" name="rooms">
+                    <option value="">Toutes</option>
                     <option value="1">1 pièce</option>
                     <option value="2">2 pièces</option>
                     <option value="3">3 pièces</option>
@@ -50,59 +91,131 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="price_range" class="form-label">Prix mensuel</label>
-                <div class="d-flex align-items-center">
-                    <input type="number" class="form-control me-2" id="min_price" name="min_price" placeholder="Min">
-                    <span class="mx-2">-</span>
-                    <input type="number" class="form-control ms-2" id="max_price" name="max_price" placeholder="Max">
+                <label for="price_range" class="form-label fw-medium">Budget annuel</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><small>Min</small></span>
+                    <input type="number" class="form-control form-control-lg" id="min_price" name="min_price" placeholder="0" min="0">
+                    <span class="input-group-text bg-light border-start-0 border-end-0">-</span>
+                    <input type="number" class="form-control form-control-lg" id="max_price" name="max_price" placeholder="Max">
+                    <span class="input-group-text bg-light border-start-0">FCFA/an</span>
                 </div>
             </div>
             <div class="col-md-3">
-                <label for="location" class="form-label">Localisation</label>
-                <input type="text" class="form-control" id="location" name="location" placeholder="Quartier, adresse...">
+                <label for="location" class="form-label fw-medium">Localisation</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-map-marker-alt"></i></span>
+                    <input type="text" class="form-control form-control-lg" id="location" name="location" placeholder="Quartier, adresse...">
+                </div>
             </div>
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary btn-lg w-100" aria-label="Rechercher">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
         </form>
     </div>
-</div>
+</section>
 
 <!-- Featured Properties -->
-<section class="featured-properties mb-5">
+<section class="featured-properties py-5">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h4 fw-bold">Dernières annonces</h2>
-            <a href="{{ url_for('main.search') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2">
+                <i class="fas fa-home me-2"></i>Nos biens immobiliers
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Dernières annonces disponibles</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 700px;">
+                Découvrez notre sélection de biens immobiliers soigneusement sélectionnés pour répondre à tous vos besoins.
+            </p>
         </div>
         
         {% if properties.items %}
             <div class="row g-4">
                 {% for property in properties.items %}
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 property-card">
-                            {% if property.images.first() %}
-                                <img src="{{ url_for('static', filename='uploads/' + property.images.first().filename) }}" class="card-img-top" alt="{{ property.title }}">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="card-img-top" alt="Image non disponible">
-                            {% endif %}
+                        <div class="card h-100 property-card shadow-sm border-0 overflow-hidden">
+                            <div class="position-relative">
+                                <a href="{{ url_for('properties.property_detail', id=property.id) }}" class="text-decoration-none">
+                                    {% if property.images.first() %}
+                                        <img src="{{ property.images.first().get_image_url() }}" 
+                                             class="card-img-top property-image" 
+                                             alt="{{ property.title }}"
+                                             loading="lazy">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='images/no-image.jpg') }}" 
+                                             class="card-img-top property-image" 
+                                             alt="Aucune image disponible"
+                                             loading="lazy">
+                                    {% endif %}
+                                </a>
+                                <div class="position-absolute top-0 end-0 m-3">
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm" 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="left" 
+                                            title="Ajouter aux favoris">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                </div>
+                                <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(transparent, rgba(0,0,0,0.7));">
+                                    <div class="text-white">
+                                        <span class="badge bg-primary mb-2">{{ property.property_type|capitalize }}</span>
+                                        <h3 class="h5 mb-0">
+                                            <a href="{{ url_for('properties.property_detail', id=property.id) }}" class="text-white text-decoration-none">
+                                                {{ property.title }}
+                                            </a>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="card-title mb-1">{{ property.title }}</h5>
-                                    <span class="badge bg-primary">{{ property.property_type|title }}</span>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                    <span class="text-muted">{{ property.city }}, {{ property.neighborhood }}</span>
                                 </div>
-                                <p class="text-muted mb-2">
-                                    <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ property.address }}
-                                </p>
-                                <div class="property-features d-flex mb-3">
-                                    <span class="me-3"><i class="fas fa-bed me-1"></i> {{ property.bedrooms }} ch.</span>
-                                    <span class="me-3"><i class="fas fa-ruler-combined me-1"></i> {{ property.area }} m²</span>
+                                
+                                <div class="d-flex flex-column mb-3">
+                                    {% if property.price_type == 'annual' or not property.price_type %}
+                                        <span class="h4 text-primary fw-bold mb-0">
+                                            {{ "%0.0f"|format(property.annual_price if property.annual_price else property.price * 12) }} FCFA
+                                        </span>
+                                        <span class="text-muted small">
+                                            <i class="fas fa-info-circle"></i> 
+                                            {{ "%0.0f"|format((property.annual_price / 12) if property.annual_price else property.price) }} FCFA/mois (est.)
+                                        </span>
+                                    {% else %}
+                                        <span class="h4 text-primary fw-bold mb-0">
+                                            {{ "%0.0f"|format(property.price) }} FCFA/mois
+                                        </span>
+                                        <span class="text-muted small">
+                                            <i class="fas fa-info-circle"></i> 
+                                            {{ "%0.0f"|format(property.price * 12) }} FCFA/an (est.)
+                                        </span>
+                                    {% endif %}
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h4 class="text-primary mb-0">{{ "%0.0f"|format(property.price|float) }} €/mois</h4>
-                                    <a href="{{ url_for('main.property', id=property.id) }}" class="btn btn-sm btn-outline-primary">Voir plus</a>
+                                
+                                <div class="d-flex justify-content-between border-top border-bottom py-2 mb-3">
+                                    <div class="text-center">
+                                        <div class="text-muted small">Pièces</div>
+                                        <div class="fw-medium">{{ property.rooms }}</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-muted small">Surface</div>
+                                        <div class="fw-medium">{{ property.area }} m²</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-muted small">Disponibilité</div>
+                                        <div class="fw-medium">Immédiate</div>
+                                    </div>
+                                </div>
+                                
+                                <a href="{{ url_for('properties.property_detail', id=property.id) }}" class="btn btn-outline-primary w-100">
+                                    <i class="far fa-eye me-2"></i>Voir le bien
+                                </a>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0 pt-0">
+                                <div class="d-flex justify-content-between align-items-center text-muted small">
+                                    <span><i class="far fa-calendar-alt me-1"></i> {{ property.created_at.strftime('%d/%m/%Y') }}</span>
+                                    <span><i class="fas fa-phone-alt me-1"></i> Contact</span>
                                 </div>
                             </div>
                         </div>
@@ -112,11 +225,11 @@
             
             <!-- Pagination -->
             {% if properties.pages > 1 %}
-                <nav class="mt-4">
+                <nav class="mt-5" aria-label="Navigation des pages">
                     <ul class="pagination justify-content-center">
                         {% if properties.has_prev %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('main.index', page=properties.prev_num) }}" aria-label="Previous">
+                                <a class="page-link" href="{{ url_for('main.index', page=properties.prev_num, **request.args) }}" aria-label="Précédent">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
                             </li>
@@ -128,17 +241,25 @@
                         
                         {% for page_num in properties.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
                             {% if page_num %}
-                                <li class="page-item {% if page_num == properties.page %}active{% endif %}">
-                                    <a class="page-link" href="{{ url_for('main.index', page=page_num) }}">{{ page_num }}</a>
-                                </li>
+                                {% if page_num != properties.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('main.index', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link bg-primary border-primary">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
                             {% else %}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
                             {% endif %}
                         {% endfor %}
                         
                         {% if properties.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('main.index', page=properties.next_num) }}" aria-label="Next">
+                                <a class="page-link" href="{{ url_for('main.index', page=properties.next_num, **request.args) }}" aria-label="Suivant">
                                     <span aria-hidden="true">&raquo;</span>
                                 </a>
                             </li>
@@ -152,19 +273,85 @@
             {% endif %}
             
         {% else %}
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i class="fas fa-home fa-4x text-muted"></i>
+            <div class="text-center py-5 my-5">
+                <div class="mb-4">
+                    <i class="fas fa-home fa-4x text-muted opacity-25"></i>
                 </div>
-                <h3 class="h4 mb-3">Aucune annonce disponible pour le moment</h3>
-                <p class="text-muted">Revenez plus tard pour découvrir nos nouvelles offres de location.</p>
+                <h3 class="h4 text-muted mb-3">Aucune annonce disponible pour le moment</h3>
+                <p class="text-muted mb-4">Revenez plus tard pour découvrir nos nouvelles offres.</p>
                 {% if current_user.is_authenticated and current_user.is_landlord %}
-                    <a href="{{ url_for('properties.new_property') }}" class="btn btn-primary">
+                    <a href="{{ url_for('properties.new_property') }}" class="btn btn-primary px-4">
                         <i class="fas fa-plus me-2"></i>Déposer une annonce
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('main.search') }}" class="btn btn-outline-primary px-4">
+                        <i class="fas fa-search me-2"></i>Explorer les biens
                     </a>
                 {% endif %}
             </div>
         {% endif %}
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2">
+                <i class="fas fa-star me-2"></i>Pourquoi nous choisir ?
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Votre sérénité, notre priorité</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 700px;">
+                Nous nous engageons à vous offrir la meilleure expérience immobilière possible.
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="fas fa-shield-alt fa-2x"></i>
+                    </div>
+                    <h3 class="h5 mb-3">Sécurité garantie</h3>
+                    <p class="text-muted mb-0">Tous nos biens sont vérifiés et sécurisés pour votre tranquillité d'esprit.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="fas fa-hand-holding-usd fa-2x"></i>
+                    </div>
+                    <h3 class="h5 mb-3">Prix transparents</h3>
+                    <p class="text-muted mb-0">Pas de frais cachés, des prix clairs et compétitifs pour tous les budgets.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm p-4">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="fas fa-headset fa-2x"></i>
+                    </div>
+                    <h3 class="h5 mb-3">Support 7j/7</h3>
+                    <p class="text-muted mb-0">Une équipe à votre écoute pour répondre à toutes vos questions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="h2 mb-3">Vous souhaitez louer votre bien ?</h2>
+                <p class="lead mb-0">Rejoignez notre plateforme et bénéficiez d'une gestion simplifiée de vos locations.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-4">
+                    <i class="fas fa-plus-circle me-2"></i>Déposer une annonce
+                </a>
+            </div>
+        </div>
     </div>
 </section>
 

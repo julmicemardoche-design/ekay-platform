@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvelle demande de réservation - E-KAY</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+        .header img {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .booking-details {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #0d6efd;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #0d6efd;
+            color: #0d6efd !important;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+        .highlight-box {
+            background-color: #e9f5ff;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .guest-info {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .guest-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        .guest-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .dates {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        .date-box {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            margin: 0 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="E-KAY Logo">
+        <h1>Nouvelle demande de réservation</h1>
+    </div>
+    
+    <div class="content">
+        <p>Bonjour {{ host.username }},</p>
+        <p>Vous avez reçu une nouvelle demande de réservation pour <strong>{{ property.title }}</strong> de la part de {{ guest.username }}.</p>
+        
+        <div class="highlight-box">
+            <p><strong>Action requise :</strong> Veuillez répondre à cette demande dans les 24 heures.</p>
+            <p>Si vous n'y répondez pas dans ce délai, la demande sera automatiquement annulée.</p>
+        </div>
+        
+        <h3>Informations sur le voyageur</h3>
+        <div class="guest-info">
+            <div class="guest-avatar">
+                {% if guest.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + guest.avatar, _external=True) }}" alt="{{ guest.username }}">
+                {% else %}
+                    <i class="fas fa-user" style="font-size: 24px; color: #666;"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h4 style="margin: 0 0 5px 0;">{{ guest.username }}</h4>
+                <p style="margin: 0; color: #666;">Membre depuis {{ guest.created_at.strftime('%B %Y') }}</p>
+                <p style="margin: 5px 0 0 0;">
+                    <a href="mailto:{{ guest.email }}" style="color: #0d6efd; text-decoration: none;">
+                        <i class="fas fa-envelope"></i> Contacter
+                    </a>
+                </p>
+            </div>
+        </div>
+        
+        <h3>Détails de la réservation</h3>
+        
+        {% if property.get_primary_image() %}
+        <img src="{{ property.get_primary_image().url() }}" alt="{{ property.title }}" class="property-image">
+        {% endif %}
+        
+        <div class="dates">
+            <div class="date-box">
+                <div><strong>Arrivée</strong></div>
+                <div>{{ check_in }}</div>
+            </div>
+            <div class="date-box">
+                <div><strong>Départ</strong></div>
+                <div>{{ check_out }}</div>
+            </div>
+            <div class="date-box">
+                <div><strong>Durée</strong></div>
+                <div>{{ nights }} nuits</div>
+            </div>
+        </div>
+        
+        <div class="booking-details">
+            <h4>Détails du séjour</h4>
+            <p><strong>Voyageurs :</strong> {{ booking.guests }} personne{{ 's' if booking.guests > 1 else '' }}</p>
+            
+            {% if booking.notes %}
+            <h4>Demandes spéciales</h4>
+            <p>{{ booking.notes }}</p>
+            {% endif %}
+            
+            <h4>Prix total</h4>
+            <p style="font-size: 1.5em; font-weight: bold;">{{ "%0.0f"|format(total) }} HTG</p>
+            <p><small>Dont frais de service (10%) : {{ "%0.0f"|format(total * 0.1) }} HTG</small></p>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ booking_url }}" class="btn">Voir la demande</a>
+            <a href="{{ url_for('properties.contact_owner', property_id=property.id, _external=True) }}" class="btn btn-outline">Contacter le voyageur</a>
+        </div>
+        
+        <div class="highlight-box">
+            <h4>Comment répondre à cette demande ?</h4>
+            <ol>
+                <li>Cliquez sur "Voir la demande" ci-dessus</li>
+                <li>Vérifiez la disponibilité de votre logement</li>
+                <li>Acceptez ou refusez la demande</li>
+            </ol>
+            <p><strong>Rappel :</strong> Vous avez 24 heures pour répondre à cette demande. Passé ce délai, elle sera automatiquement annulée.</p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>© {{ now.year }} E-KAY. Tous droits réservés.</p>
+        <p><a href="{{ url_for('main.contact', _external=True) }}">Contact</a> | <a href="{{ url_for('main.terms', _external=True) }}">Conditions d'utilisation</a> | <a href="{{ url_for('main.privacy', _external=True) }">Politique de confidentialité</a></p>
+        <p>Vous recevez cet email car vous êtes propriétaire d'un logement sur E-KAY.</p>
+    </div>
+</body>
+</html>

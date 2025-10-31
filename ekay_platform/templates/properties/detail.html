@@ -268,8 +268,21 @@
             </div>
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 <div class="property-price">
-                    {{ "{:,.0f}".format(property.price) }} FCFA
-                    {% if property.for_rent %}<small>/mois</small>{% endif %}
+                    {% if property.price_type == 'annual' %}
+                        {{ "{:,.0f}".format(property.annual_price) }} FCFA
+                        <small>/an</small>
+                        <div class="text-muted small mt-1">
+                            (soit {{ "{:,.0f}".format(property.price) }} FCFA/mois)
+                        </div>
+                    {% else %}
+                        {{ "{:,.0f}".format(property.price) }} FCFA
+                        <small>/mois</small>
+                        {% if property.annual_price %}
+                            <div class="text-muted small mt-1">
+                                (soit {{ "{:,.0f}".format(property.annual_price) }} FCFA/an)
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
                 <div class="mt-2">
                     <button class="btn btn-outline-secondary me-2 no-print" onclick="window.print()">

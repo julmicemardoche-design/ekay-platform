@@ -1,0 +1,155 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+            {% if user %}
+                <i class="fas fa-user-edit me-2"></i>Modifier l'utilisateur
+            {% else %}
+                <i class="fas fa-user-plus me-2"></i>Nouvel utilisateur
+            {% endif %}
+        </h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Informations de connexion</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.username.label(class="form-label fw-bold") }}
+                                        {{ form.username(class="form-control" + (' is-invalid' if form.username.errors else '')) }}
+                                        {% if form.username.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.username.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.email.label(class="form-label fw-bold") }}
+                                        {{ form.email(class="form-control" + (' is-invalid' if form.email.errors else '')) }}
+                                        {% if form.email.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.email.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.password.label(class="form-label fw-bold") }}
+                                        {{ form.password(class="form-control" + (' is-invalid' if form.password.errors else '')) }}
+                                        {% if form.password.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.password.errors[0] }}
+                                            </div>
+                                        {% else %}
+                                            <div class="form-text">Laissez vide pour ne pas modifier le mot de passe</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.password_confirm.label(class="form-label fw-bold") }}
+                                        {{ form.password_confirm(class="form-control" + (' is-invalid' if form.password_confirm.errors else '')) }}
+                                        {% if form.password_confirm.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.password_confirm.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Rôles et permissions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.is_admin(class="form-check-input" + (' is-invalid' if form.is_admin.errors else ''), role="switch") }}
+                                    {{ form.is_admin.label(class="form-check-label fw-bold") }}
+                                    {% if form.is_admin.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.is_admin.errors[0] }}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-text">Accès complet au panneau d'administration</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.is_landlord(class="form-check-input" + (' is-invalid' if form.is_landlord.errors else ''), role="switch") }}
+                                    {{ form.is_landlord.label(class="form-check-label fw-bold") }}
+                                    {% if form.is_landlord.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.is_landlord.errors[0] }}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-text">Peut publier et gérer des biens immobiliers</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-check form-switch">
+                                    {{ form.email_verified(class="form-check-input" + (' is-invalid' if form.email_verified.errors else ''), role="switch") }}
+                                    {{ form.email_verified.label(class="form-check-label fw-bold") }}
+                                    {% if form.email_verified.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.email_verified.errors[0] }}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-text">L'utilisateur pourra se connecter uniquement si l'email est vérifié</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if user %}
+                                Mettre à jour
+                            {% else %}
+                                Créer l'utilisateur
+                            {% endif %}
+                        </button>
+                        
+                        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}

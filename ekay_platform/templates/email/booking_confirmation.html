@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation de votre réservation - E-KAY</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+        .header img {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .booking-details {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #0d6efd;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+        .highlight-box {
+            background-color: #e9f5ff;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .dates {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        .date-box {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            margin: 0 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='img/logo.png', _external=True) }}" alt="E-KAY Logo">
+        <h1>Confirmation de réservation</h1>
+    </div>
+    
+    <div class="content">
+        <p>Bonjour {{ user.username }},</p>
+        <p>Merci d'avoir réservé sur E-KAY ! Votre demande de réservation pour <strong>{{ property.title }}</strong> a bien été reçue.</p>
+        
+        <div class="highlight-box">
+            <p><strong>Statut actuel :</strong> En attente de confirmation par l'hôte</p>
+            <p>L'hôte a 24 heures pour répondre à votre demande. Vous recevrez une notification par email dès que votre réservation sera confirmée.</p>
+        </div>
+        
+        <h3>Détails de votre réservation</h3>
+        
+        {% if property.get_primary_image() %}
+        <img src="{{ property.get_primary_image().url() }}" alt="{{ property.title }}" class="property-image">
+        {% endif %}
+        
+        <div class="dates">
+            <div class="date-box">
+                <div><strong>Arrivée</strong></div>
+                <div>{{ check_in }}</div>
+            </div>
+            <div class="date-box">
+                <div><strong>Départ</strong></div>
+                <div>{{ check_out }}</div>
+            </div>
+            <div class="date-box">
+                <div><strong>Durée</strong></div>
+                <div>{{ nights }} nuits</div>
+            </div>
+        </div>
+        
+        <div class="booking-details">
+            <h4>Détails du logement</h4>
+            <p>{{ property.description|truncate(200) }}</p>
+            
+            <h4>Adresse</h4>
+            <p>{{ property.address }}, {{ property.city }}, {{ property.country }}</p>
+            
+            <h4>Hôte</h4>
+            <p>{{ property.user.username }}</p>
+            
+            {% if booking.notes %}
+            <h4>Vos demandes spéciales</h4>
+            <p>{{ booking.notes }}</p>
+            {% endif %}
+            
+            <h4>Prix total</h4>
+            <p style="font-size: 1.5em; font-weight: bold;">{{ "%0.0f"|format(total) }} HTG</p>
+            <p><small>Frais de service inclus (10%)</small></p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ booking_url }}" class="btn">Voir ma réservation</a>
+        </div>
+        
+        <h4>Prochaines étapes</h4>
+        <ol>
+            <li>Attendez la confirmation de l'hôte (dans les 24h)</li>
+            <li>Une fois confirmé, préparez votre séjour</li>
+            <li>Profitez de votre voyage !</li>
+        </ol>
+        
+        <p>Pour toute question, n'hésitez pas à contacter l'hôte directement ou notre service client.</p>
+    </div>
+    
+    <div class="footer">
+        <p>© {{ now.year }} E-KAY. Tous droits réservés.</p>
+        <p><a href="{{ url_for('main.contact', _external=True) }}">Contact</a> | <a href="{{ url_for('main.terms', _external=True) }}">Conditions d'utilisation</a> | <a href="{{ url_for('main.privacy', _external=True) }}">Politique de confidentialité</a></p>
+        <p>Vous recevez cet email car vous avez effectué une réservation sur E-KAY.</p>
+    </div>
+</body>
+</html>

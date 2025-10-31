@@ -34,6 +34,10 @@ class Config:
     # Pagination
     PROPERTIES_PER_PAGE = 12
     
+    # Babel configuration
+    LANGUAGES = ['en', 'fr', 'ht']
+    BABEL_DEFAULT_LOCALE = 'fr'
+    
     @staticmethod
     def init_app(app):
         # Ensure upload folder exists

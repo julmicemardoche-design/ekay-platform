@@ -1,0 +1,52 @@
+Nouvelle demande de réservation - E-KAY
+
+Bonjour {{ host.username }},
+
+Vous avez reçu une nouvelle demande de réservation pour votre propriété "{{ property.title }}" de la part de {{ guest.username }}.
+
+=== ACTION REQUISE ===
+Veuillez répondre à cette demande dans les 24 heures. Si vous n'y répondez pas dans ce délai, la demande sera automatiquement annulée.
+
+=== INFORMATIONS SUR LE VOYAGEUR ===
+Nom : {{ guest.username }}
+Email : {{ guest.email }}
+Membre depuis : {{ guest.created_at.strftime('%B %Y') }}
+
+=== DÉTAILS DE LA RÉSERVATION ===
+Propriété : {{ property.title }}
+Adresse : {{ property.address }}, {{ property.city }}
+
+Dates de séjour :
+- Arrivée : {{ check_in }}
+- Départ : {{ check_out }}
+- Durée : {{ nights }} nuits
+
+Voyageurs : {{ booking.guests }} personne{{ 's' if booking.guests > 1 else '' }}
+
+{% if booking.notes %}Demandes spéciales :
+{{ booking.notes }}
+{% endif %}
+
+Prix total : {{ "%0.0f"|format(total) }} HTG
+Dont frais de service (10%) : {{ "%0.0f"|format(total * 0.1) }} HTG
+
+=== COMMENT RÉPONDRE À CETTE DEMANDE ? ===
+1. Connectez-vous à votre compte E-KAY
+2. Allez dans la section "Réservations"
+3. Trouvez cette réservation et cliquez sur "Voir les détails"
+4. Acceptez ou refusez la demande
+
+Ou cliquez directement sur ce lien pour gérer cette réservation :
+{{ booking_url }}
+
+Rappel : Vous avez 24 heures pour répondre à cette demande. Passé ce délai, elle sera automatiquement annulée.
+
+Cordialement,
+L'équipe E-KAY
+
+---
+© {{ now.year }} E-KAY. Tous droits réservés.
+Contact : {{ url_for('main.contact', _external=True) }}
+Aide : {{ url_for('main.help', _external=True) }}
+
+Vous recevez cet email car vous êtes propriétaire d'un logement sur E-KAY.

@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+
+{% block title %}Réservations reçues - E-KAY{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Accueil</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Réservations reçues</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Réservations reçues</h1>
+            <p class="text-muted mb-0">Gérez les réservations pour vos propriétés</p>
+        </div>
+        <a href="{{ url_for('properties.new_property') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Nouvelle annonce
+        </a>
+    </div>
+    
+    <ul class="nav nav-tabs mb-4" id="hostBookingTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                En attente <span class="badge bg-warning text-dark ms-1">{{ bookings|selectattr('status', 'eq', 'pending')|list|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                À venir <span class="badge bg-primary ms-1">{{ bookings|selectattr('status', 'eq', 'confirmed')|selectattr('start_date', 'ge', now)|list|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab">
+                En cours <span class="badge bg-info ms-1">{{ bookings|selectattr('status', 'eq', 'confirmed')|selectattr('start_date', 'le', now)|selectattr('end_date', 'ge', now)|list|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab">
+                Passées
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab">
+                Annulées
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="hostBookingTabsContent">
+        <!-- Onglet des demandes en attente -->
+        <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+            {% set pending_bookings = bookings|selectattr('status', 'eq', 'pending')|list %}
+            
+            {% if pending_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Logement</th>
+                                <th>Voyageur</th>
+                                <th>Dates</th>
+                                <th>Prix</th>
+                                <th>Demandé le</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in pending_bookings %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if booking.property.get_primary_image() %}
+                                        <img src="{{ booking.property.get_primary_image().url() }}" 
+                                             class="rounded me-2" 
+                                             width="60" 
+                                             height="40" 
+                                             style="object-fit: cover;"
+                                             alt="{{ booking.property.title }}">
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ booking.property.title|truncate(20) }}</div>
+                                            <small class="text-muted">{{ booking.property.city }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 30px; height: 30px; overflow: hidden;">
+                                            {% if booking.user.avatar %}
+                                                <img src="{{ url_for('static', filename='uploads/avatars/' + booking.user.avatar) }}" 
+                                                     alt="{{ booking.user.username }}" 
+                                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                                <i class="fas fa-user text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <div>{{ booking.user.username }}</div>
+                                            <small class="text-muted">{{ booking.guests }} personne{{ 's' if booking.guests > 1 }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.start_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">au {{ booking.end_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">{{ (booking.end_date - booking.start_date).days }} nuits</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</div>
+                                    <div class="text-muted small">{{ "%0.0f"|format(booking.property.price) }} HTG x {{ (booking.end_date - booking.start_date).days // 30 }} mois</div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.created_at.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">{{ booking.created_at.strftime('%H:%M') }}</div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <form method="POST" action="{{ url_for('properties.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                            <input type="hidden" name="status" value="confirmed">
+                                            <button type="submit" class="btn btn-sm btn-success" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="Accepter la réservation">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('properties.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                            <input type="hidden" name="status" value="cancelled">
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Refuser la réservation"
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir refuser cette réservation ?')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                        <a href="{{ url_for('properties.booking_details', booking_id=booking.id) }}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           data-bs-toggle="tooltip"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h4>Aucune demande en attente</h4>
+                    <p class="text-muted">Les nouvelles demandes de réservation apparaîtront ici.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Onglet des réservations à venir -->
+        <div class="tab-pane fade" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+            {% set upcoming_bookings = bookings|selectattr('status', 'eq', 'confirmed')|selectattr('start_date', 'ge', now)|list %}
+            
+            {% if upcoming_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Logement</th>
+                                <th>Voyageur</th>
+                                <th>Dates</th>
+                                <th>Prix</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in upcoming_bookings %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if booking.property.get_primary_image() %}
+                                        <img src="{{ booking.property.get_primary_image().url() }}" 
+                                             class="rounded me-2" 
+                                             width="60" 
+                                             height="40" 
+                                             style="object-fit: cover;"
+                                             alt="{{ booking.property.title }}">
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ booking.property.title|truncate(20) }}</div>
+                                            <small class="text-muted">{{ booking.property.city }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 30px; height: 30px; overflow: hidden;">
+                                            {% if booking.user.avatar %}
+                                                <img src="{{ url_for('static', filename='uploads/avatars/' + booking.user.avatar) }}" 
+                                                     alt="{{ booking.user.username }}" 
+                                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                                <i class="fas fa-user text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>{{ booking.user.username }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.start_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">au {{ booking.end_date.strftime('%d/%m/%Y') }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</div>
+                                    <div class="text-muted small">{{ (booking.end_date - booking.start_date).days }} nuits</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Confirmée</span>
+                                    <div class="text-muted small">Arrivée dans {{ (booking.start_date - now).days }} jours</div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('properties.booking_details', booking_id=booking.id) }}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           data-bs-toggle="tooltip"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('properties.contact_owner', property_id=booking.property.id) }}" 
+                                           class="btn btn-sm btn-outline-secondary"
+                                           data-bs-toggle="tooltip"
+                                           title="Contacter le voyageur">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <h4>Aucune réservation à venir</h4>
+                    <p class="text-muted">Les réservations à venir apparaîtront ici.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Onglet des séjours en cours -->
+        <div class="tab-pane fade" id="current" role="tabpanel" aria-labelledby="current-tab">
+            {% set current_bookings = bookings|selectattr('status', 'eq', 'confirmed')|selectattr('start_date', 'le', now)|selectattr('end_date', 'ge', now)|list %}
+            
+            {% if current_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Logement</th>
+                                <th>Voyageur</th>
+                                <th>Dates</th>
+                                <th>Prix</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in current_bookings %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if booking.property.get_primary_image() %}
+                                        <img src="{{ booking.property.get_primary_image().url() }}" 
+                                             class="rounded me-2" 
+                                             width="60" 
+                                             height="40" 
+                                             style="object-fit: cover;"
+                                             alt="{{ booking.property.title }}">
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ booking.property.title|truncate(20) }}</div>
+                                            <small class="text-muted">{{ booking.property.city }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 30px; height: 30px; overflow: hidden;">
+                                            {% if booking.user.avatar %}
+                                                <img src="{{ url_for('static', filename='uploads/avatars/' + booking.user.avatar) }}" 
+                                                     alt="{{ booking.user.username }}" 
+                                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                                <i class="fas fa-user text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>{{ booking.user.username }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.start_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">au {{ booking.end_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">Départ dans {{ (booking.end_date - now).days }} jours</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</div>
+                                    <div class="text-muted small">{{ (booking.end_date - booking.start_date).days }} nuits</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">En cours</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('properties.booking_details', booking_id=booking.id) }}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           data-bs-toggle="tooltip"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('properties.contact_owner', property_id=booking.property.id) }}" 
+                                           class="btn btn-sm btn-outline-secondary"
+                                           data-bs-toggle="tooltip"
+                                           title="Contacter le voyageur">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('properties.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                            <input type="hidden" name="status" value="completed">
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-outline-success"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Marquer comme terminé"
+                                                    onclick="return confirm('Marquer ce séjour comme terminé ?')">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                    <h4>Aucun séjour en cours</h4>
+                    <p class="text-muted">Les séjours en cours apparaîtront ici.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Onglet des réservations passées -->
+        <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+            {% set past_bookings = bookings|selectattr('end_date', 'lt', now)|selectattr('status', 'ne', 'cancelled')|list %}
+            
+            {% if past_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Logement</th>
+                                <th>Voyageur</th>
+                                <th>Dates</th>
+                                <th>Prix</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in past_bookings %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if booking.property.get_primary_image() %}
+                                        <img src="{{ booking.property.get_primary_image().url() }}" 
+                                             class="rounded me-2" 
+                                             width="60" 
+                                             height="40" 
+                                             style="object-fit: cover;"
+                                             alt="{{ booking.property.title }}">
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ booking.property.title|truncate(20) }}</div>
+                                            <small class="text-muted">{{ booking.property.city }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 30px; height: 30px; overflow: hidden;">
+                                            {% if booking.user.avatar %}
+                                                <img src="{{ url_for('static', filename='uploads/avatars/' + booking.user.avatar) }}" 
+                                                     alt="{{ booking.user.username }}" 
+                                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                                <i class="fas fa-user text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>{{ booking.user.username }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.start_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">au {{ booking.end_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">Terminé il y a {{ (now - booking.end_date).days }} jours</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</div>
+                                    <div class="text-muted small">{{ (booking.end_date - booking.start_date).days }} nuits</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">Terminé</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('properties.booking_details', booking_id=booking.id) }}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           data-bs-toggle="tooltip"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('properties.contact_owner', property_id=booking.property.id) }}" 
+                                           class="btn btn-sm btn-outline-secondary"
+                                           data-bs-toggle="tooltip"
+                                           title="Contacter le voyageur">
+                                            <i class="fas fa-envelope"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h4>Aucune réservation passée</h4>
+                    <p class="text-muted">Vos réservations passées apparaîtront ici.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Onglet des réservations annulées -->
+        <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+            {% set cancelled_bookings = bookings|selectattr('status', 'eq', 'cancelled')|list %}
+            
+            {% if cancelled_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Logement</th>
+                                <th>Voyageur</th>
+                                <th>Dates prévues</th>
+                                <th>Prix</th>
+                                <th>Annulée le</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in cancelled_bookings %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if booking.property.get_primary_image() %}
+                                        <img src="{{ booking.property.get_primary_image().url() }}" 
+                                             class="rounded me-2" 
+                                             width="60" 
+                                             height="40" 
+                                             style="object-fit: cover;"
+                                             alt="{{ booking.property.title }}">
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ booking.property.title|truncate(20) }}</div>
+                                            <small class="text-muted">{{ booking.property.city }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 30px; height: 30px; overflow: hidden;">
+                                            {% if booking.user.avatar %}
+                                                <img src="{{ url_for('static', filename='uploads/avatars/' + booking.user.avatar) }}" 
+                                                     alt="{{ booking.user.username }}" 
+                                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                                <i class="fas fa-user text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>{{ booking.user.username }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.start_date.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">au {{ booking.end_date.strftime('%d/%m/%Y') }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</div>
+                                    <div class="text-muted small">{{ (booking.end_date - booking.start_date).days }} nuits</div>
+                                </td>
+                                <td>
+                                    <div>{{ booking.updated_at.strftime('%d/%m/%Y') }}</div>
+                                    <div class="text-muted small">{{ booking.updated_at.strftime('%H:%M') }}</div>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('properties.booking_details', booking_id=booking.id) }}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       data-bs-toggle="tooltip"
+                                       title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-ban fa-3x text-muted mb-3"></i>
+                    <h4>Aucune réservation annulée</h4>
+                    <p class="text-muted">Les réservations annulées apparaîtront ici.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+.nav-tabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    position: relative;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background: none;
+    border: none;
+    border-bottom: 3px solid #0d6efd;
+}
+
+.nav-tabs .nav-link:not(.active) {
+    opacity: 0.7;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    opacity: 1;
+    border-bottom: 3px solid #dee2e6;
+}
+
+.table th {
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    border-top: none;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.booking-actions .btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activation des tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Gestion des onglets avec stockage de l'état
+    var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabEls.forEach(function(tabEl) {
+        tabEl.addEventListener('shown.bs.tab', function (event) {
+            localStorage.setItem('lastHostBookingTab', event.target.id);
+        });
+    });
+    
+    // Restaurer l'onglet actif
+    var lastTab = localStorage.getItem('lastHostBookingTab');
+    if (lastTab) {
+        var tabToShow = document.getElementById(lastTab);
+        if (tabToShow) {
+            var tab = new bootstrap.Tab(tabToShow);
+            tab.show();
+        }
+    }
+    
+    // Confirmation avant de refuser une réservation
+    var declineButtons = document.querySelectorAll('.btn-decline-booking');
+    declineButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Êtes-vous sûr de vouloir refuser cette réservation ? Cette action est irréversible.')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

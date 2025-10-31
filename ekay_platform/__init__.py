@@ -1,23 +1,21 @@
 """
 E-KAY Platform - Collaborative Housing Rental Platform
-Copyright (c) 2025 Walny Mardoché JULMICE. All Rights Reserved.
-
-This software is proprietary and confidential.
-Unauthorized copying, distribution, or use is strictly prohibited.
-Contact: julmicemardoche@gmail.com
 """
 
 import os
 import sys
 from flask import Flask
+from datetime import datetime
 
-# Ajouter le répertoire parent au chemin Python
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Configuration du chemin Python
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
 
-# Maintenant, nous pouvons importer config
+# Import des extensions
+from .extensions import db, login_manager, migrate, mail, babel
+
+# Import de la configuration
 from config import config
-
-from .extensions import db, login_manager, migrate, mail
 
 def create_app(config_name='default'):
     """Application factory function"""
@@ -32,6 +30,7 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
+    babel.init_app(app)
     
     # Configure login manager
     login_manager.login_view = 'auth.login'
@@ -46,6 +45,17 @@ def create_app(config_name='default'):
     
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
+    
+    from .user.routes import bp as user_blueprint
+    app.register_blueprint(user_blueprint, url_prefix='/user')
+    
+    # Ajouter la variable 'now' au contexte de Jinja2
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow}
+    
+    from .admin import admin_bp as admin_blueprint
+    app.register_blueprint(admin_blueprint, url_prefix='/admin')
     
     # Error handlers
     from .errors import page_not_found, internal_server_error, forbidden
@@ -67,5 +77,7 @@ def create_app(config_name='default'):
     return app
 
 
-# Import models to ensure they are registered with SQLAlchemy
-from .models import User, Property, PropertyImage
+# Import des modèles pour s'assurer qu'ils sont enregistrés avec SQLAlchemy
+# Cette importation est nécessaire pour que SQLAlchemy connaisse tous les modèles
+# avant de créer les tables de la base de données
+from .models import User, Property, PropertyImage, Token  # noqa: F401

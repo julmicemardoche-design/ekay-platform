@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Mes Annonces</h1>
+        <a href="{{ url_for('properties.new') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nouvelle annonce
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if current_user.properties.count() > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Titre</th>
+                                <th>Type</th>
+                                <th>Prix</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for property in current_user.properties %}
+                            <tr>
+                                <td>
+                                    {% if property.images.first() %}
+                                        <img src="{{ url_for('static', filename='uploads/' + property.images.first().filename) }}" 
+                                             alt="{{ property.title }}" class="img-thumbnail" style="width: 100px; height: 70px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center" 
+                                             style="width: 100px; height: 70px;">
+                                            <i class="fas fa-home text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ property.title }}</td>
+                                <td>{{ property.property_type.value }}</td>
+                                <td>{{ "${:,.0f}".format(property.price) }}/mois</td>
+                                <td>
+                                    {% if property.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('properties.view', id=property.id) }}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('properties.edit', id=property.id) }}" 
+                                           class="btn btn-outline-secondary" 
+                                           title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger" 
+                                                title="Supprimer"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteProperty{{ property.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Modal de confirmation de suppression -->
+                                    <div class="modal fade" id="deleteProperty{{ property.id }}" tabindex="-1" 
+                                         aria-labelledby="deletePropertyLabel{{ property.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deletePropertyLabel{{ property.id }}">
+                                                        Confirmer la suppression
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" 
+                                                            aria-label="Fermer"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Êtes-vous sûr de vouloir supprimer l'annonce "{{ property.title }}" ?
+                                                    Cette action est irréversible.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" 
+                                                            data-bs-dismiss="modal">Annuler</button>
+                                                    <form action="{{ url_for('properties.delete', id=property.id) }}" 
+                                                          method="POST" style="display: inline;">
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-trash me-1"></i> Supprimer
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-home fa-4x text-muted mb-3"></i>
+                        <h3>Vous n'avez pas encore d'annonces</h3>
+                        <p class="text-muted">Commencez par créer votre première annonce pour la louer.</p>
+                    </div>
+                    <a href="{{ url_for('properties.new') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Créer une annonce
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

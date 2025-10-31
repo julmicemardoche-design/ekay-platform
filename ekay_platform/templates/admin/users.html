@@ -1,0 +1,202 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestion des utilisateurs</h2>
+    <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary">
+        <i class="fas fa-user-plus me-2"></i>Nouvel utilisateur
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Inscrit le</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users.items %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if user.avatar %}
+                                {% set default_avatar = url_for('static', filename='images/default-avatar.png') %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.avatar) }}" 
+                                     alt="{{ user.username }}" 
+                                     class="rounded-circle me-2" 
+                                     width="32" 
+                                     height="32" 
+                                     onerror="this.onerror=null; this.src='{{ default_avatar }}';">
+                                {% else %}
+                                <div class="avatar-circle-sm bg-primary text-white d-flex align-items-center justify-content-center me-2">
+                                    {{ user.username[0]|upper }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ user.username }}</div>
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-danger">Admin</span>
+                                    {% elif user.is_landlord %}
+                                    <span class="badge bg-primary">Propriétaire</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Locataire</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge bg-danger">Administrateur</span>
+                            {% elif user.is_landlord %}
+                            <span class="badge bg-primary">Propriétaire</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Utilisateur</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if user.email_verified %}
+                            <span class="badge bg-success">Vérifié</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Non vérifié</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if current_user.id != user.id %}
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger" 
+                                        title="Supprimer"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteUserModal{{ user.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Delete Confirmation Modal -->
+                            {% if current_user.id != user.id %}
+                            <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" 
+                                 aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>Confirmer la suppression
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ user.username }}</strong> ?</p>
+                                            <p class="mb-0">Cette action est irréversible et supprimera toutes les données associées à cet utilisateur.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-trash me-1"></i> Supprimer
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h4>Aucun utilisateur trouvé</h4>
+                            <p class="text-muted">Aucun utilisateur n'est enregistré pour le moment.</p>
+                            <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-user-plus me-2"></i>Ajouter un utilisateur
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if users.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if users.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.manage_users', page=users.prev_num) }}" aria-label="Précédent">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in users.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if users.page == page_num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.manage_users', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if users.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.manage_users', page=users.next_num) }}" aria-label="Suivant">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+.avatar-circle-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

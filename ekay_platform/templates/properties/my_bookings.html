@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Mes réservations - E-KAY{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Accueil</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Mes réservations</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Mes réservations</h1>
+        <a href="{{ url_for('properties.list_properties') }}" class="btn btn-outline-primary">
+            <i class="fas fa-search me-1"></i> Trouver un logement
+        </a>
+    </div>
+    
+    {% if not bookings %}
+    <div class="text-center py-5 my-5">
+        <div class="mb-4">
+            <i class="fas fa-calendar-check fa-4x text-muted mb-3"></i>
+            <h3>Vous n'avez pas encore de réservation</h3>
+            <p class="text-muted">Parcourez nos logements disponibles et réservez votre prochain séjour !</p>
+            <a href="{{ url_for('properties.list_properties') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-search me-1"></i> Voir les logements disponibles
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <ul class="nav nav-tabs mb-4" id="bookingTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                À venir
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab">
+                Passées
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab">
+                Annulées
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="bookingTabsContent">
+        <!-- Onglet des réservations à venir -->
+        <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+            {% set upcoming_bookings = bookings|selectattr('start_date', 'ge', now)|
+                                   selectattr('status', 'in', ['pending', 'confirmed'])|list %}
+            
+            {% if upcoming_bookings %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for booking in upcoming_bookings %}
+                        {{ booking_card(booking) }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                    <h4>Aucune réservation à venir</h4>
+                    <p class="text-muted">Parcourez nos logements disponibles pour votre prochain voyage.</p>
+                    <a href="{{ url_for('properties.list_properties') }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-search me-1"></i> Voir les logements
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Onglet des réservations passées -->
+        <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+            {% set past_bookings = bookings|selectattr('end_date', 'lt', now)|list %}
+            
+            {% if past_bookings %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for booking in past_bookings %}
+                        {{ booking_card(booking) }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h4>Aucune réservation passée</h4>
+                    <p class="text-muted">Vos séjours passés apparaîtront ici.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Onglet des réservations annulées -->
+        <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+            {% set cancelled_bookings = bookings|selectattr('status', 'eq', 'cancelled')|list %}
+            
+            {% if cancelled_bookings %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for booking in cancelled_bookings %}
+                        {{ booking_card(booking) }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-3">
+                    <i class="fas fa-ban fa-3x text-muted mb-3"></i>
+                    <h4>Aucune réservation annulée</h4>
+                    <p class="text-muted">Vous n'avez annulé aucune réservation.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% macro booking_card(booking) %}
+<div class="col">
+    <div class="card h-100 booking-card">
+        <div class="row g-0 h-100">
+            <div class="col-md-4 position-relative">
+                {% if booking.property.get_primary_image() %}
+                <img src="{{ booking.property.get_primary_image().url() }}" 
+                     class="img-fluid rounded-start h-100 w-100" 
+                     alt="{{ booking.property.title }}"
+                     style="object-fit: cover;">
+                {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center h-100">
+                    <i class="fas fa-home fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <span class="position-absolute top-0 start-0 m-2">
+                    <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'secondary' }}">
+                        {{ booking.status|capitalize }}
+                    </span>
+                </span>
+            </div>
+            <div class="col-md-8">
+                <div class="card-body d-flex flex-column h-100">
+                    <div class="mb-2">
+                        <h5 class="card-title mb-1">
+                            <a href="{{ url_for('properties.view_property', id=booking.property.id) }}" class="text-decoration-none">
+                                {{ booking.property.title|truncate(30) }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ booking.property.neighborhood }}, {{ booking.property.city }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex mb-1">
+                            <div style="width: 100px;"><small>Arrivée :</small></div>
+                            <div><small>{{ booking.start_date.strftime('%d/%m/%Y') }}</small></div>
+                        </div>
+                        <div class="d-flex">
+                            <div style="width: 100px;"><small>Départ :</small></div>
+                            <div><small>{{ booking.end_date.strftime('%d/%m/%Y') }}</small></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="h5 mb-0">{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</span>
+                                <small class="text-muted d-block">
+                                    {{ (booking.end_date - booking.start_date).days // 30 }} mois
+                                </small>
+                            </div>
+                            <a href="{{ url_for('properties.booking_details', booking_id=booking.id) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                Voir les détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% block styles %}
+{{ super() }}
+<style>
+.booking-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.booking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.nav-tabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    position: relative;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background: none;
+    border: none;
+    border-bottom: 3px solid #0d6efd;
+}
+
+.nav-tabs .nav-link:not(.active) {
+    opacity: 0.7;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    opacity: 1;
+    border-bottom: 3px solid #dee2e6;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activation des tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Gestion des onglets avec stockage de l'état
+    var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabEls.forEach(function(tabEl) {
+        tabEl.addEventListener('shown.bs.tab', function (event) {
+            localStorage.setItem('lastBookingTab', event.target.id);
+        });
+    });
+    
+    // Restaurer l'onglet actif
+    var lastTab = localStorage.getItem('lastBookingTab');
+    if (lastTab) {
+        var tabToShow = document.getElementById(lastTab);
+        if (tabToShow) {
+            var tab = new bootstrap.Tab(tabToShow);
+            tab.show();
+        }
+    }
+});
+</script>
+{% endblock %}

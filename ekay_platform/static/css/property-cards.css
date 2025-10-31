@@ -1,0 +1,229 @@
+/* Style des cartes de propriétés */
+.property-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.property-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.property-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.property-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.property-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.property-card .card-text {
+    color: #6b7280;
+    flex-grow: 1;
+    margin-bottom: 1rem;
+}
+
+.property-card .property-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+}
+
+.property-card .property-price small {
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.property-card .property-features {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.property-card .property-feature {
+    display: flex;
+    align-items: center;
+    color: #4b5563;
+    font-size: 0.875rem;
+}
+
+.property-card .property-feature i {
+    margin-right: 0.5rem;
+    color: var(--secondary-color);
+}
+
+.property-card .property-address {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.property-card .property-address i {
+    margin-right: 0.5rem;
+    color: var(--secondary-color);
+}
+
+.property-card .property-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 1;
+}
+
+.property-card .property-status {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    z-index: 1;
+}
+
+.property-card .card-footer {
+    background-color: white;
+    border-top: 1px solid #f3f4f6;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.property-card .property-date {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.property-card .property-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.property-card .btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 20px;
+}
+
+/* Style pour la galerie d'images */
+.property-gallery {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+}
+
+.property-gallery .carousel-inner {
+    height: 100%;
+}
+
+.property-gallery .carousel-item {
+    height: 100%;
+}
+
+.property-gallery .carousel-item img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.property-gallery .carousel-control-prev,
+.property-gallery .carousel-control-next {
+    width: 10%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.property-card:hover .property-gallery .carousel-control-prev,
+.property-card:hover .property-gallery .carousel-control-next {
+    opacity: 1;
+}
+
+/* Style pour les indicateurs de la galerie */
+.property-gallery .carousel-indicators {
+    margin-bottom: 0.5rem;
+    bottom: 0;
+}
+
+.property-gallery .carousel-indicators button {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin: 0 3px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+}
+
+.property-gallery .carousel-indicators .active {
+    background-color: white;
+}
+
+/* Style pour les étiquettes */
+.property-tag {
+    display: inline-block;
+    background-color: #e5f2ff;
+    color: var(--secondary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Style pour les cartes en grille */
+.properties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .properties-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .property-card .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .property-card .property-price {
+        font-size: 1.25rem;
+    }
+}

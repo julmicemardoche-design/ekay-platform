@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Vérifiez votre adresse email - E-KAY</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 20px 0; }
+        .logo { max-width: 150px; height: auto; }
+        .button {
+            display: inline-block; 
+            padding: 12px 24px; 
+            background-color: #4CAF50; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            margin: 20px 0;
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 0.9em; 
+            color: #777; 
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bienvenue sur E-KAY !</h1>
+        </div>
+        
+        <p>Bonjour {{ user.username }},</p>
+        
+        <p>Merci de vous être inscrit sur E-KAY. Pour commencer à utiliser votre compte, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
+        
+        <p style="text-align: center;">
+            <a href="{{ verify_url }}" class="button">Vérifier mon email</a>
+        </p>
+        
+        <p>Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur :</p>
+        <p style="word-break: break-all; color: #0066cc;">{{ verify_url }}</p>
+        
+        <p>Ce lien expirera dans 24 heures pour des raisons de sécurité.</p>
+        
+        <p>Cordialement,<br>L'équipe E-KAY</p>
+        
+        <div class="footer">
+            <p>© 2025 E-KAY - Tous droits réservés</p>
+            <p>Ceci est un email automatique, merde de ne pas y répondre.</p>
+        </div>
+    </div>
+</body>
+</html>

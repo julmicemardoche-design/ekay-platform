@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Réserver {{ property.title }} - E-KAY{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+.booking-summary {
+    position: sticky;
+    top: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.booking-dates {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.price-breakdown {
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.price-total {
+    font-size: 1.2em;
+    font-weight: bold;
+    border-top: 2px solid #dee2e6;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+.property-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('properties.property_detail', id=property.id) }}">{{ property.title|truncate(30) }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Réserver</li>
+                </ol>
+            </nav>
+
+            <h1 class="mb-4">Réserver {{ property.title }}</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Vos informations</h5>
+                    <p class="text-muted">Connecté en tant que {{ current_user.username }} ({{ current_user.email }})</p>
+                    
+                    <form method="POST" id="bookingForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.start_date.label(class="form-label") }}
+                                    {{ form.start_date(class="form-control" + (" is-invalid" if form.start_date.errors else "")) }}
+                                    {% for error in form.start_date.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.end_date.label(class="form-label") }}
+                                    {{ form.end_date(class="form-control" + (" is-invalid" if form.end_date.errors else "")) }}
+                                    {% for error in form.end_date.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.guests.label(class="form-label") }}
+                                    {{ form.guests(class="form-control" + (" is-invalid" if form.guests.errors else "")) }}
+                                    {% for error in form.guests.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.notes.label(class="form-label") }}
+                            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else "")) }}
+                            <small class="form-text text-muted">
+                                Informations complémentaires (optionnel)
+                            </small>
+                            {% for error in form.notes.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                Je reconnais avoir pris connaissance des <a href="{{ url_for('main.terms') }}" target="_blank">conditions générales de location</a> et les accepte sans réserve.
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="booking-summary">
+                <h5 class="mb-4">Résumé de la réservation</h5>
+                
+                <div class="property-image-container mb-3">
+                    {% if property.get_primary_image() %}
+                        <img src="{{ property.get_primary_image().url() }}" alt="{{ property.title }}" class="property-image">
+                    {% else %}
+                        <div class="property-image bg-light d-flex align-items-center justify-content-center">
+                            <i class="fas fa-home fa-4x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    <h5>{{ property.title }}</h5>
+                    <p class="text-muted">{{ property.address }}</p>
+                </div>
+                
+                <div class="booking-dates">
+                    <h6>Dates de séjour</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Arrivée:</span>
+                        <strong id="display-checkin">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Départ:</span>
+                        <strong id="display-checkout">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Durée:</span>
+                        <strong id="display-nights">-</strong>
+                    </div>
+                </div>
+                
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Prix par mois:</span>
+                        <span id="price-per-night">{{ "%0.0f"|format(property.price) }} HTG</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Frais de service:</span>
+                        <span id="service-fee">-</span>
+                    </div>
+                    <div class="price-row price-total">
+                        <span>Total:</span>
+                        <span id="total-price">-</span>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        Le paiement ne sera pas débité avant la confirmation du propriétaire.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation des datepickers
+    const startDateInput = document.getElementById('{{ form.start_date.id }}');
+    const endDateInput = document.getElementById('{{ form.end_date.id }}');
+    
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const startDatePicker = flatpickr(startDateInput, {
+        locale: 'fr',
+        minDate: 'today',
+        dateFormat: 'd/m/Y',
+        onChange: function(selectedDates, dateStr, instance) {
+            endDatePicker.set('minDate', dateStr);
+            updateBookingSummary();
+        }
+    });
+    
+    const endDatePicker = flatpickr(endDateInput, {
+        locale: 'fr',
+        minDate: 'today',
+        dateFormat: 'd/m/Y',
+        onChange: function() {
+            updateBookingSummary();
+        }
+    });
+    
+    // Fonction pour mettre à jour le récapitulatif
+    function updateBookingSummary() {
+        const startDate = startDatePicker.selectedDates[0];
+        const endDate = endDatePicker.selectedDates[0];
+        
+        if (startDate && endDate) {
+            // Mise à jour des dates affichées
+            document.getElementById('display-checkin').textContent = startDate.toLocaleDateString('fr-FR');
+            document.getElementById('display-checkout').textContent = endDate.toLocaleDateString('fr-FR');
+            
+            // Calcul de la durée en nuits
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const months = Math.ceil(diffDays / 30);
+            
+            document.getElementById('display-nights').textContent = `${months} mois (${diffDays} nuits)`;
+            
+            // Calcul du prix total
+            const pricePerNight = {{ property.price }};
+            const totalPrice = months * pricePerNight;
+            const serviceFee = Math.round(totalPrice * 0.1); // 10% de frais de service
+            
+            // Mise à jour des prix
+            document.getElementById('service-fee').textContent = `${serviceFee.toLocaleString('fr-FR')} HTG`;
+            document.getElementById('total-price').textContent = `${(totalPrice + serviceFee).toLocaleString('fr-FR')} HTG`;
+        }
+    }
+    
+    // Mise à jour initiale
+    updateBookingSummary();
+    
+    // Validation du formulaire
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        if (!startDateInput.value || !endDateInput.value) {
+            e.preventDefault();
+            alert('Veuillez sélectionner les dates de votre séjour');
+            return false;
+        }
+        
+        if (!document.getElementById('terms').checked) {
+            e.preventDefault();
+            alert('Veuvez accepter les conditions générales pour continuer');
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>
+{% endblock %}

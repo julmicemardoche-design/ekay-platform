@@ -1,0 +1,121 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestion des biens immobiliers</h2>
+    <a href="{{ url_for('admin.new_property') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Ajouter un bien
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if properties %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Titre</th>
+                            <th>Type</th>
+                            <th>Prix</th>
+                            <th>Ville</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for property in properties %}
+                        <tr>
+                            <td>{{ property.id }}</td>
+                            <td>
+                                {% if property.main_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + property.main_image) }}" 
+                                         alt="{{ property.title }}" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-home text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>{{ property.title }}</td>
+                            <td>{{ property.property_type|title }}</td>
+                            <td>
+                                {{ "{:,}".format(property.price|int) }} {{ '€/mois' if property.price_type == 'monthly' else '€/an' }}
+                            </td>
+                            <td>{{ property.city }}</td>
+                            <td>
+                                {% if property.is_available %}
+                                    <span class="badge bg-success">Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Non disponible</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('properties.property_detail', id=property.id) }}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin.edit_property', id=property.id) }}" 
+                                       class="btn btn-sm btn-outline-secondary" 
+                                       title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger" 
+                                            title="Supprimer"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ property.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ property.id }}" tabindex="-1" 
+                                     aria-labelledby="deleteModalLabel{{ property.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ property.id }}">
+                                                    Confirmer la suppression
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Êtes-vous sûr de vouloir supprimer le bien "{{ property.title }}" ?
+                                                Cette action est irréversible.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <form action="{{ url_for('admin.delete_property', id=property.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fas fa-trash me-1"></i> Supprimer
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h4>Aucun bien enregistré</h4>
+                <p class="text-muted">Commencez par ajouter votre premier bien immobilier.</p>
+                <a href="{{ url_for('admin.new_property') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus me-2"></i>Ajouter un bien
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

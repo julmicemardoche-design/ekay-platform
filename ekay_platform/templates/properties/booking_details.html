@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Détails de la réservation #{{ booking.id }} - E-KAY{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('properties.my_bookings') }}">Mes réservations</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Réservation #{{ booking.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="h5 mb-0">Réservation #{{ booking.id }}</h1>
+                        <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                            {{ booking.status|capitalize }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Détails du séjour</h5>
+                            <div class="d-flex mb-2">
+                                <div style="width: 120px;"><strong>Arrivée :</strong></div>
+                                <div>{{ booking.start_date.strftime('%A %d %B %Y') }}</div>
+                            </div>
+                            <div class="d-flex mb-2">
+                                <div style="width: 120px;"><strong>Départ :</strong></div>
+                                <div>{{ booking.end_date.strftime('%A %d %B %Y') }}</div>
+                            </div>
+                            <div class="d-flex mb-2">
+                                <div style="width: 120px;"><strong>Durée :</strong></div>
+                                <div>{{ (booking.end_date - booking.start_date).days }} nuits</div>
+                            </div>
+                            <div class="d-flex mb-2">
+                                <div style="width: 120px;"><strong>Voyageurs :</strong></div>
+                                <div>{{ booking.guests }} personne{{ 's' if booking.guests > 1 else '' }}</div>
+                            </div>
+                            
+                            {% if booking.notes %}
+                            <div class="mt-3">
+                                <h6>Vos demandes spéciales :</h6>
+                                <p class="text-muted">{{ booking.notes }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Logement</h5>
+                            <div class="d-flex">
+                                {% if booking.property.get_primary_image() %}
+                                <img src="{{ booking.property.get_primary_image().url() }}" 
+                                     alt="{{ booking.property.title }}" 
+                                     class="img-thumbnail me-3" 
+                                     style="width: 120px; height: 90px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-1">{{ booking.property.title }}</h6>
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ booking.property.neighborhood }}, {{ booking.property.city }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <strong>{{ "%0.0f"|format(booking.property.price) }} HTG</strong> / mois
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5 class="mb-3">Hôte</h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px; overflow: hidden;">
+                                        {% if booking.property.user.avatar %}
+                                            <img src="{{ url_for('static', filename='uploads/avatars/' + booking.property.user.avatar) }}" 
+                                                 alt="{{ booking.property.user.username }}" 
+                                                 style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% else %}
+                                            <i class="fas fa-user text-muted" style="font-size: 1.5rem;"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0">{{ booking.property.user.username }}</h6>
+                                        <p class="text-muted small mb-0">Hôte sur E-KAY</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <a href="{{ url_for('properties.contact_owner', property_id=booking.property.id) }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-envelope me-1"></i> Contacter l'hôte
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Détails du prix</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>{{ "%0.0f"|format(booking.property.price) }} HTG x {{ (booking.end_date - booking.start_date).days // 30 }} mois</span>
+                                <span>{{ "%0.0f"|format(booking.property.price * ((booking.end_date - booking.start_date).days // 30)) }} HTG</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Frais de service</span>
+                                <span>{{ "%0.0f"|format(booking.property.price * 0.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold mt-3 pt-2 border-top">
+                                <span>Total</span>
+                                <span>{{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG</span>
+                            </div>
+                        </div>
+                        
+                        {% if booking.status == 'pending' and booking.property.user_id == current_user.id %}
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Actions</h5>
+                            <div class="d-grid gap-2">
+                                <form method="POST" action="{{ url_for('properties.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                    <input type="hidden" name="status" value="confirmed">
+                                    <button type="submit" class="btn btn-success w-100 mb-2">
+                                        <i class="fas fa-check-circle me-1"></i> Confirmer la réservation
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('properties.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" class="btn btn-outline-danger w-100" 
+                                            onclick="return confirm('Êtes-vous sûr de vouloir refuser cette réservation ?')">
+                                        <i class="fas fa-times-circle me-1"></i> Refuser la réservation
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if booking.status == 'confirmed' and booking.user_id == current_user.id and booking.start_date > now %}
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Actions</h5>
+                            <form method="POST" action="{{ url_for('properties.update_booking_status', booking_id=booking.id) }}" 
+                                  class="d-inline" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')">
+                                <input type="hidden" name="status" value="cancelled">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-times-circle me-1"></i> Annuler ma réservation
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <small class="text-muted">
+                        <i class="far fa-clock me-1"></i> 
+                        Réservation effectuée le {{ booking.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                    </small>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Conditions d'annulation</h2>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Politique de remboursement</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Remboursement intégral si annulation jusqu'à 30 jours avant l'arrivée
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            50% de remboursement si annulation entre 15 et 29 jours avant l'arrivée
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Aucun remboursement pour les annulations à moins de 14 jours de l'arrivée
+                        </li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        En cas d'annulation, le remboursement sera effectué dans un délai de 5 à 10 jours ouvrés.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Besoin d'aide ?</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-light rounded-circle p-2 me-3">
+                            <i class="fas fa-phone-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Service client</h6>
+                            <p class="text-muted small mb-0">Disponible 24/7 pour vous aider</p>
+                            <a href="tel:+509XXXXXXXX" class="text-decoration-none">+509 XX XX XX XX</a>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start">
+                        <div class="bg-light rounded-circle p-2 me-3">
+                            <i class="fas fa-envelope text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Email</h6>
+                            <p class="text-muted small mb-0">Nous répondons sous 24h</p>
+                            <a href="mailto:support@ekay.com" class="text-decoration-none">support@ekay.com</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Conseils de voyage</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="bg-light rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-map-marked-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Localisation</h6>
+                            <p class="small text-muted mb-0">
+                                Vérifiez l'emplacement exact de votre logement et les moyens de transport à proximité.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="bg-light rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-phone-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Contact</h6>
+                            <p class="small text-muted mb-0">
+                                N'hésitez pas à contacter votre hôte pour toute question avant votre arrivée.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex">
+                        <div class="bg-light rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-suitcase text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Préparatifs</h6>
+                            <p class="small text-muted mb-0">
+                                Pensez à vérifier les équipements disponibles et à prévoir ce dont vous aurez besoin.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation des tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Gestion de l'annulation de réservation
+    var cancelButtons = document.querySelectorAll('.cancel-booking');
+    cancelButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

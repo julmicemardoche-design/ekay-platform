@@ -27,7 +27,13 @@
                         </p>
                         <p class="card-text">
                             <span class="badge bg-primary">{{ property.rooms }} pièces</span>
-                            <span class="badge bg-success ms-2">{{ "%.2f"|format(property.price) }} $/mois</span>
+                            <span class="badge bg-success ms-2">
+                                {% if property.price_type == 'annual' %}
+                                    {{ "{:,.0f}".format(property.annual_price) }} FCFA/an
+                                {% else %}
+                                    {{ "{:,.0f}".format(property.price) }} FCFA/mois
+                                {% endif %}
+                            </span>
                         </p>
                         <p class="card-text">
                             {{ property.description|truncate(150) }}

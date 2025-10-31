@@ -33,7 +33,7 @@ class RegistrationForm(FlaskForm):
         )
     ],
     render_kw={
-        'pattern': '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$',
+        'pattern': r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$',
         'title': '12 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial',
         'autocomplete': 'new-password'
     })
@@ -125,6 +125,37 @@ class ResetPasswordRequestForm(FlaskForm):
     submit = SubmitField('Demander la réinitialisation du mot de passe')
 
 
+class ResendVerificationForm(FlaskForm):
+    email = StringField('Email', validators=[
+        DataRequired(),
+        Email(message='Veuillez entrer une adresse email valide')
+    ])
+    submit = SubmitField('Renvoyer l\'email de vérification')
+
+
+class ChangePasswordForm(FlaskForm):
+    """Formulaire de changement de mot de passe"""
+    current_password = PasswordField('Mot de passe actuel', validators=[DataRequired()])
+    new_password = PasswordField('Nouveau mot de passe', validators=[
+        DataRequired(message='Un mot de passe est requis'),
+        Length(min=12, message='Le mot de passe doit contenir au moins 12 caractères'),
+        Regexp(
+            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$',
+            message='Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&)'
+        )
+    ],
+    render_kw={
+        'pattern': r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$',
+        'title': '12 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial',
+        'autocomplete': 'new-password'
+    })
+    confirm_password = PasswordField('Confirmer le nouveau mot de passe', validators=[
+        DataRequired(),
+        EqualTo('new_password', message='Les mots de passe ne correspondent pas')
+    ])
+    submit = SubmitField('Changer le mot de passe')
+
+
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('Nouveau mot de passe', validators=[
         DataRequired(message='Un mot de passe est requis'),
@@ -135,7 +166,7 @@ class ResetPasswordForm(FlaskForm):
         )
     ],
     render_kw={
-        'pattern': '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$',
+        'pattern': r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$',
         'title': '12 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial',
         'autocomplete': 'new-password'
     })

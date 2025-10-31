@@ -1,0 +1,330 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+            {% if property %}
+                <i class="fas fa-edit me-2"></i>Modifier le bien
+            {% else %}
+                <i class="fas fa-plus-circle me-2"></i>Ajouter un nouveau bien
+            {% endif %}
+        </h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <!-- Informations de base -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Informations principales</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                {{ form.title.label(class="form-label fw-bold") }}
+                                {{ form.title(class="form-control" + (' is-invalid' if form.title.errors else '')) }}
+                                {% if form.title.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.title.errors[0] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.description.label(class="form-label fw-bold") }}
+                                {{ form.description(class="form-control" + (' is-invalid' if form.description.errors else ''), rows=5) }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.description.errors[0] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.price_info.price.label(class="form-label fw-bold") }}
+                                        <div class="input-group">
+                                            {{ form.price_info.price(class="form-control" + (' is-invalid' if form.price_info.price.errors else '')) }}
+                                            <span class="input-group-text">€</span>
+                                            {% if form.price_info.price.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.price_info.price.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Période</label>
+                                        <div class="btn-group w-100" role="group">
+                                            <input type="radio" 
+                                                   class="btn-check" 
+                                                   name="{{ form.price_info.price_type.name }}" 
+                                                   id="price_type_monthly" 
+                                                   value="monthly" 
+                                                   {{ 'checked' if form.price_info.price_type.data == 'monthly' else '' }}>
+                                            <label class="btn btn-outline-primary" for="price_type_monthly">
+                                                <i class="bi bi-calendar-month me-1"></i> Mensuel
+                                            </label>
+                                            
+                                            <input type="radio" 
+                                                   class="btn-check" 
+                                                   name="{{ form.price_info.price_type.name }}" 
+                                                   id="price_type_annual" 
+                                                   value="annual"
+                                                   {{ 'checked' if form.price_info.price_type.data == 'annual' else '' }}>
+                                            <label class="btn btn-outline-primary" for="price_type_annual">
+                                                <i class="bi bi-calendar-check me-1"></i> Annuel
+                                            </label>
+                                        </div>
+                                        <small class="text-muted" id="price-hint">
+                                            {{ 'Prix mensuel affiché' if form.price_info.price_type.data == 'monthly' else 'Prix annuel affiché' }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.main_image.label(class="form-label fw-bold") }}
+                                {{ form.main_image(class="form-control" + (' is-invalid' if form.main_image.errors else '')) }}
+                                {% if form.main_image.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.main_image.errors[0] }}
+                                    </div>
+                                {% endif %}
+                                {% if property and property.main_image %}
+                                    <div class="mt-2">
+                                        <img src="{{ url_for('static', filename='uploads/' + property.main_image) }}" 
+                                             alt="Image actuelle" class="img-thumbnail" style="max-width: 200px;">
+                                        <p class="text-muted mt-2 mb-0">Image actuelle</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Détails du bien -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Détails du bien</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.details.property_type.label(class="form-label fw-bold") }}
+                                        {{ form.details.property_type(class="form-select" + (' is-invalid' if form.details.property_type.errors else '')) }}
+                                        {% if form.details.property_type.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.details.property_type.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.details.surface.label(class="form-label fw-bold") }}
+                                        <div class="input-group">
+                                            {{ form.details.surface(class="form-control" + (' is-invalid' if form.details.surface.errors else '')) }}
+                                            <span class="input-group-text">m²</span>
+                                            {% if form.details.surface.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.details.surface.errors[0] }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        {{ form.details.rooms.label(class="form-label fw-bold") }}
+                                        {{ form.details.rooms(class="form-control" + (' is-invalid' if form.details.rooms.errors else '')) }}
+                                        {% if form.details.rooms.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.details.rooms.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        {{ form.details.bedrooms.label(class="form-label fw-bold") }}
+                                        {{ form.details.bedrooms(class="form-control" + (' is-invalid' if form.details.bedrooms.errors else '')) }}
+                                        {% if form.details.bedrooms.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.details.bedrooms.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        {{ form.details.bathrooms.label(class="form-label fw-bold") }}
+                                        {{ form.details.bathrooms(class="form-control" + (' is-invalid' if form.details.bathrooms.errors else '')) }}
+                                        {% if form.details.bathrooms.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.details.bathrooms.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Localisation -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Localisation</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                {{ form.location.address.label(class="form-label fw-bold") }}
+                                {{ form.location.address(class="form-control" + (' is-invalid' if form.location.address.errors else ''), placeholder="Adresse complète") }}
+                                {% if form.location.address.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.location.address.errors[0] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.location.postal_code.label(class="form-label fw-bold") }}
+                                        {{ form.location.postal_code(class="form-control" + (' is-invalid' if form.location.postal_code.errors else '')) }}
+                                        {% if form.location.postal_code.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.location.postal_code.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.location.city.label(class="form-label fw-bold") }}
+                                        {{ form.location.city(class="form-control" + (' is-invalid' if form.location.city.errors else '')) }}
+                                        {% if form.location.city.errors %}
+                                            <div class="invalid-feedback">
+                                                {{ form.location.city.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.location.country.label(class="form-label fw-bold") }}
+                                {{ form.location.country(class="form-select" + (' is-invalid' if form.location.country.errors else '')) }}
+                                {% if form.location.country.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.location.country.errors[0] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <!-- Statut et disponibilité -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Statut et disponibilité</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    {{ form.availability.is_available(class="form-check-input" + (' is-invalid' if form.availability.is_available.errors else ''), role="switch") }}
+                                    {{ form.availability.is_available.label(class="form-check-label fw-bold") }}
+                                    {% if form.availability.is_available.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.availability.is_available.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.availability.available_from.label(class="form-label fw-bold") }}
+                                {{ form.availability.available_from(class="form-control" + (' is-invalid' if form.availability.available_from.errors else ''), type="date") }}
+                                {% if form.availability.available_from.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.availability.available_from.errors[0] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if property %}
+                                        Mettre à jour le bien
+                                    {% else %}
+                                        Enregistrer le bien
+                                    {% endif %}
+                                </button>
+                                
+                                <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aide et conseils -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Conseils</h6>
+                        </div>
+                        <div class="card-body small">
+                            <ul class="mb-0">
+                                <li class="mb-2">Remplissez tous les champs obligatoires marqués d'un astérisque (*).</li>
+                                <li class="mb-2">Utilisez des descriptions détaillées pour attirer plus d'attention.</li>
+                                <li class="mb-2">Des photos de bonne qualité augmentent considérablement l'engagement.</li>
+                                <li>Vérifiez bien les informations avant de publier.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Script pour la conversion des prix
+    document.addEventListener('DOMContentLoaded', function() {
+        const priceInput = document.getElementById('{{ form.price_info.price.id }}');
+        const priceTypeMonthly = document.getElementById('price_type_monthly');
+        const priceTypeAnnual = document.getElementById('price_type_annual');
+        const priceHint = document.getElementById('price-hint');
+        
+        function updatePriceHint() {
+            if (priceTypeMonthly.checked) {
+                priceHint.textContent = 'Prix mensuel affiché';
+            } else {
+                priceHint.textContent = 'Prix annuel affiché';
+            }
+        }
+        
+        if (priceTypeMonthly && priceTypeAnnual) {
+            priceTypeMonthly.addEventListener('change', updatePriceHint);
+            priceTypeAnnual.addEventListener('change', updatePriceHint);
+        }
+    });
+</script>
+{% endblock %}

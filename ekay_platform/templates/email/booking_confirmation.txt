@@ -1,0 +1,49 @@
+Confirmation de votre réservation - E-KAY
+
+Bonjour {{ user.username }},
+
+Merci d'avoir réservé sur E-KAY ! Votre demande de réservation pour "{{ property.title }}" a bien été reçue.
+
+=== DÉTAILS DE VOTRE RÉSERVATION ===
+
+Propriété : {{ property.title }}
+Adresse : {{ property.address }}, {{ property.city }}, {{ property.country }}
+
+Dates de séjour :
+- Arrivée : {{ check_in }}
+- Départ : {{ check_out }}
+- Durée : {{ nights }} nuits
+
+Hôte : {{ property.user.username }}
+
+{% if booking.notes %}Demandes spéciales :
+{{ booking.notes }}
+{% endif %}
+
+Prix total : {{ "%0.0f"|format(total) }} HTG (frais de service inclus)
+
+=== STATUT ACTUEL ===
+En attente de confirmation par l'hôte
+
+L'hôte a 24 heures pour répondre à votre demande. Vous recevrez une notification par email dès que votre réservation sera confirmée.
+
+=== PROCHAINES ÉTAPES ===
+1. Attendez la confirmation de l'hôte (dans les 24h)
+2. Une fois confirmé, préparez votre séjour
+3. Profitez de votre voyage !
+
+Pour voir les détails de votre réservation, visitez :
+{{ booking_url }}
+
+Pour toute question, n'hésitez pas à contacter l'hôte directement ou notre service client.
+
+Cordialement,
+L'équipe E-KAY
+
+---
+© {{ now.year }} E-KAY. Tous droits réservés.
+Contact : {{ url_for('main.contact', _external=True) }}
+Conditions d'utilisation : {{ url_for('main.terms', _external=True) }}
+Politique de confidentialité : {{ url_for('main.privacy', _external=True) }}
+
+Vous recevez cet email car vous avez effectué une réservation sur E-KAY.

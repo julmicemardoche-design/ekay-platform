@@ -25,9 +25,16 @@ def index():
     rooms = request.args.get('rooms', type=int)
     
     if min_price is not None:
-        query = query.filter(Property.price >= min_price)
+        # Si un prix annuel est défini, on l'utilise, sinon on utilise le prix mensuel * 12
+        query = query.filter(db.or_(
+            db.and_(Property.annual_price.isnot(None), Property.annual_price >= min_price),
+            db.and_(Property.annual_price.is_(None), Property.price * 12 >= min_price)
+        ))
     if max_price is not None:
-        query = query.filter(Property.price <= max_price)
+        query = query.filter(db.or_(
+            db.and_(Property.annual_price.isnot(None), Property.annual_price <= max_price),
+            db.and_(Property.annual_price.is_(None), Property.price * 12 <= max_price)
+        ))
     if rooms is not None:
         query = query.filter(Property.rooms >= rooms)
     

@@ -1,0 +1,52 @@
+Réservation confirmée - E-KAY
+
+Bonjour {{ user.username }},
+
+Félicitations ! Votre réservation pour "{{ property.title }}" a été confirmée par l'hôte.
+
+=== VOTRE SÉJOUR EST CONFIRMÉ ! ===
+
+=== DÉTAILS DE VOTRE RÉSERVATION ===
+
+Propriété : {{ property.title }}
+Adresse : {{ property.address }}, {{ property.city }}, {{ property.country }}
+
+Dates de séjour :
+- Arrivée : {{ booking.start_date.strftime('%A %d %B %Y') }}
+- Départ : {{ booking.end_date.strftime('%A %d %B %Y') }}
+- Durée : {{ (booking.end_date - booking.start_date).days }} nuits
+
+Votre hôte :
+- Nom : {{ property.user.username }}
+- Email : {{ property.user.email }}
+
+{% if booking.notes %}Vos demandes spéciales :
+{{ booking.notes }}
+{% endif %}
+
+=== PAIEMENT ===
+Le montant de {{ "%0.0f"|format(booking.property.price * 1.1 * ((booking.end_date - booking.start_date).days // 30)) }} HTG a été prélevé sur votre moyen de paiement.
+
+Référence de paiement : EK{{ '%08d' % booking.id }}
+
+=== PROCHAINES ÉTAPES ===
+1. Préparez vos affaires pour votre séjour
+2. Contactez votre hôte pour convenir de l'heure d'arrivée
+3. Profitez de votre voyage !
+
+=== CONSEILS POUR VOTRE SÉJOUR ===
+- Conservez cette confirmation avec vous pendant votre voyage
+- Téléchargez l'application E-KAY pour un accès facile à vos réservations
+- Vérifiez les équipements inclus dans votre logement
+
+Pour voir les détails complets de votre réservation, visitez :
+{{ booking_url }}
+
+Cordialement,
+L'équipe E-KAY
+
+---
+© {{ now.year }} E-KAY. Tous droits réservés.
+Contact : {{ url_for('main.contact', _external=True) }}
+Aide : {{ url_for('main.help', _external=True) }}
+FAQ : {{ url_for('main.faq', _external=True) }}

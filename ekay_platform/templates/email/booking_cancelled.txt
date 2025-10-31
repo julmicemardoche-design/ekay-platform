@@ -1,0 +1,56 @@
+Réservation annulée - E-KAY
+
+Bonjour {{ user.username }},
+
+Votre réservation pour "{{ property.title }}" a été annulée.
+
+=== DÉTAILS DE L'ANNULATION ===
+Date d'annulation : {{ booking.updated_at.strftime('%d %B %Y à %H:%M') }}
+Réservation n° : EK{{ '%08d' % booking.id }}
+
+=== DÉTAILS DE LA RÉSERVATION ANNULÉE ===
+Propriété : {{ property.title }}
+Adresse : {{ property.address }}, {{ property.city }}, {{ property.country }}
+
+Dates de séjour :
+- Arrivée : {{ booking.start_date.strftime('%A %d %B %Y') }}
+- Départ : {{ booking.end_date.strftime('%A %B %d, %Y') }}
+- Durée : {{ (booking.end_date - booking.start_date).days }} nuits
+
+Hôte : {{ property.user.username }}
+
+{% if booking.cancellation_reason %}
+Raison de l'annulation :
+{{ booking.cancellation_reason }}
+{% endif %}
+
+=== INFORMATIONS DE REMBOURSEMENT ===
+{% if booking.refund_amount > 0 %}
+Un remboursement de {{ "%0.0f"|format(booking.refund_amount) }} HTG a été effectué sur votre moyen de paiement.
+Le traitement du remboursement peut prendre jusqu'à 7 jours ouvrés selon votre banque.
+
+Référence de transaction : EK{{ '%08d' % booking.id }}-REF
+{% else %}
+Aucun remboursement n'est dû pour cette annulation.
+{% endif %}
+
+=== TROUVEZ UN AUTRE LOGEMENT ===
+Nous sommes désolés que votre réservation ait été annulée. Nous espérons que vous trouverez un autre logement qui vous conviendra :
+{{ url_for('properties.search', _external=True) }}
+
+=== CONSEILS POUR VOTRE PROCHAINE RÉSERVATION ===
+- Vérifiez les conditions d'annulation avant de réserver
+- Consultez les avis des voyageurs précédents
+- Posez des questions à l'hôte avant de réserver si nécessaire
+
+Si vous n'êtes pas à l'origine de cette annulation ou si vous avez des questions, n'hésitez pas à contacter notre service client :
+{{ url_for('main.contact', _external=True) }}
+
+Cordialement,
+L'équipe E-KAY
+
+---
+© {{ now.year }} E-KAY. Tous droits réservés.
+Contact : {{ url_for('main.contact', _external=True) }}
+Aide : {{ url_for('main.help', _external=True) }}
+FAQ : {{ url_for('main.faq', _external=True) }}

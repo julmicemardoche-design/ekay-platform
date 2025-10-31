@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="h3 mb-4">Mes Favoris</h1>
+
+    <div class="row">
+        {% if current_user.favorites.count() > 0 %}
+            {% for property in current_user.favorites %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        {% if property.images.first() %}
+                            <img src="{{ url_for('static', filename='uploads/' + property.images.first().filename) }}" 
+                                 class="card-img-top" alt="{{ property.title }}" 
+                                 style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-home fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-1">{{ property.title }}</h5>
+                                <form action="{{ url_for('properties.toggle_favorite', property_id=property.id) }}" 
+                                      method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-link p-0 border-0 bg-transparent" 
+                                            title="Retirer des favoris">
+                                        <i class="fas fa-heart text-danger"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ property.address }}, {{ property.city }}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="h5 mb-0 text-primary">{{ "${:,.0f}".format(property.price) }}/mois</span>
+                                <span class="badge bg-secondary">{{ property.property_type.value }}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-3">
+                                <div>
+                                    <i class="fas fa-bed me-1"></i> {{ property.bedrooms }} chambres
+                                </div>
+                                <div>
+                                    <i class="fas fa-bath me-1"></i> {{ property.bathrooms }} sdb
+                                </div>
+                                <div>
+                                    <i class="fas fa-ruler-combined me-1"></i> {{ property.area }} m²
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('properties.view', id=property.id) }}" 
+                               class="btn btn-outline-primary w-100">
+                                Voir les détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="far fa-heart fa-4x text-muted mb-3"></i>
+                            <h3>Votre liste de favoris est vide</h3>
+                            <p class="text-muted">Ajoutez des propriétés à vos favoris pour les retrouver facilement plus tard.</p>
+                        </div>
+                        <a href="{{ url_for('properties.index') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Parcourir les annonces
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
